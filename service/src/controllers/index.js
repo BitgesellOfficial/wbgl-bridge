@@ -1,4 +1,4 @@
-import * as IndexController from './IndexController'
+import * as IndexController from './IndexController.js'
 
 export {
   IndexController,

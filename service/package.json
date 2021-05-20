@@ -4,7 +4,14 @@
   "description": "BGL-WBGL(ETH) bridge",
   "main": "src/server.js",
   "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon -L --inspect=0.0.0.0:9229 src/server.js"
+  },
   "dependencies": {
     "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
   }
 }

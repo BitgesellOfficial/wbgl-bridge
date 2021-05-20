@@ -1,7 +1,8 @@
-import app from './app'
-import {port} from './config'
+import http from 'http'
+import app from './app.js'
+import {port} from './config/index.js'
 
-const server = require('http').createServer(app)
+const server = http.createServer(app)
 server.listen(parseInt(port), () => {
   console.log(`listening on *:${port}`)
 })

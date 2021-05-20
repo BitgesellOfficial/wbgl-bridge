@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  service:
+    build:
+      context: ./service
+      args:
+        - NODE_ENV=development
+    environment:
+      NODE_ENV: development
+      PORT: 3480
+      RPC_HOST: core
+      RPC_PORT: 3445
+      RPC_USER: localuser
+      RPC_PASSWORD: devpass
+    ports:
+    - 3480:3480
+    volumes:
+    - ./service:/service:delegated
+    - ./service/package.json:/service/package.json
+    - /service/node_modules
+    command: yarn dev
+
+  core:
+    build:
+      context: ./docker
+    volumes:
+    - /root/.BGL
