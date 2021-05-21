@@ -8,3 +8,8 @@ export const rpc = {
   username: process.env.RPC_USER,
   password: process.env.RPC_PASSWORD,
 }
+
+export const mongo = {
+  url: process.env.DB_CONNECTION,
+  database: process.env.DB_DATABASE || 'wbgl_bridge',
+}
