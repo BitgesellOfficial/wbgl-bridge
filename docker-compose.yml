@@ -8,13 +8,13 @@ services:
         - NODE_ENV=development
     environment:
       NODE_ENV: development
-      PORT: 3480
+      PORT: 8480
       RPC_HOST: core
-      RPC_PORT: 3445
+      RPC_PORT: 8455
       RPC_USER: localuser
       RPC_PASSWORD: devpass
     ports:
-    - 3480:3480
+    - 8480:8480
     volumes:
     - ./service:/service:delegated
     - ./service/package.json:/service/package.json
@@ -26,3 +26,5 @@ services:
       context: ./docker
     volumes:
     - /root/.BGL
+    ports:
+    - 8455
