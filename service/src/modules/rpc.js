@@ -9,3 +9,7 @@ export const getClient = () => {
   }
   return client
 }
+
+export const getBlockchainInfo = async () => await getClient().command('getblockchaininfo')
+
+export const getBalance = async () => await getClient().command('getbalance')

@@ -9,6 +9,13 @@ export const rpc = {
   password: process.env.RPC_PASSWORD,
 }
 
+export const eth = {
+  endpoint: process.env.ETH_ENDPOINT,
+  account: process.env.ETH_ACCOUNT,
+  key: Buffer.from(process.env.ETH_PRIVKEY, 'hex'),
+  contract: process.env.ETH_CONTRACT_ADDRESS,
+}
+
 export const mongo = {
   url: process.env.DB_CONNECTION,
   database: process.env.DB_DATABASE || 'wbgl_bridge',
