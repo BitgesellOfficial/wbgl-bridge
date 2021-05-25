@@ -1,11 +1,12 @@
 import Web3 from 'web3'
 import {Transaction} from 'ethereumjs-tx'
 import fs from 'fs'
-import {eth} from '../config/index.js'
+import {eth} from '../utils/config.js'
 
-const web3 = new Web3(eth.endpoint)
+export const web3 = new Web3(eth.endpoint)
 const WBGL = new web3.eth.Contract(JSON.parse(fs.readFileSync('abi/WBGL.json', 'utf8')), eth.contract)
 const decimals = await WBGL.methods['decimals']().call()
+const bn = web3.utils.toBN
 
 export const getChain = () => web3.eth.net.getNetworkType()
 
@@ -19,28 +20,38 @@ export const getEstimateGas = async (amount) => {
 }
 
 export const getWBGLBalance = async () => {
-  const balance = await WBGL.methods['balanceOf'](eth.account).call()
-  return balance / 10 ** decimals
+  const balance = bn(await WBGL.methods['balanceOf'](eth.account).call())
+  const divisor = bn(10).pow(bn(decimals))
+  const beforeDec = balance.div(divisor).toString()
+  const afterDec = balance.mod(divisor).toString()
+  return beforeDec + (afterDec !== '0' ? '.' + afterDec : '')
 }
 
 export const getTransactionCount = async () => await web3.eth.getTransactionCount(eth.account)
 
-export const sendWBGL = async (address, amount) => {
-  const data = WBGL.methods['transfer'](address, toBaseUnit(amount)).encodeABI()
-  const rawTx = {
-    nonce: web3.utils.toHex(await getTransactionCount()),
-    gasPrice: web3.utils.toHex(Math.ceil(parseFloat(await getGasPrice()))),
-    gasLimit: web3.utils.toHex(await getEstimateGas(amount) * 2),
-    to: eth.contract,
-    value: '0x00',
-    data,
-  }
-  const chain = await getChain()
-  const tx = new Transaction(rawTx, {chain})
-  tx.sign(eth.key)
+export const sendWBGL = (address, amount) => {
+  return new Promise(async (resolve, reject) => {
+    const data = WBGL.methods['transfer'](address, toBaseUnit(amount)).encodeABI()
+    const rawTx = {
+      nonce: web3.utils.toHex(await getTransactionCount()),
+      gasPrice: web3.utils.toHex(Math.ceil(parseFloat(await getGasPrice()))),
+      gasLimit: web3.utils.toHex(await getEstimateGas(amount) * 2),
+      to: eth.contract,
+      value: '0x00',
+      data,
+    }
+    const chain = await getChain()
+    const tx = new Transaction(rawTx, {chain})
+    tx.sign(eth.key)
 
-  const serializedTx = '0x' + tx.serialize().toString('hex')
-  web3.eth.sendSignedTransaction(serializedTx).on('receipt', console.log)
+    const serializedTx = '0x' + tx.serialize().toString('hex')
+    web3.eth.sendSignedTransaction(serializedTx)
+      .once('transactionHash', hash => {
+        //
+      })
+      .on('error', error => reject(error))
+      .then(receipt => resolve(receipt))
+  })
 }
 
 function isString(s) {
@@ -51,8 +62,8 @@ function toBaseUnit(value) {
   if (!isString(value)) {
     throw new Error('Pass strings to prevent floating point precision issues.')
   }
-  const ten = web3.utils.toBN(10)
-  const base = ten.pow(web3.utils.toBN(decimals))
+  const ten = bn(10)
+  const base = ten.pow(bn(decimals))
 
   // Is it negative?
   let negative = (value.substring(0, 1) === '-')
@@ -88,14 +99,14 @@ function toBaseUnit(value) {
     fraction += '0'
   }
 
-  whole = web3.utils.toBN(whole)
-  fraction = web3.utils.toBN(fraction)
+  whole = bn(whole)
+  fraction = bn(fraction)
   let wei = (whole.mul(base)).add(fraction)
 
   if (negative) {
     wei = wei.neg()
   }
 
-  return web3.utils.toBN(wei.toString(10))
+  return bn(wei.toString(10))
 }
 

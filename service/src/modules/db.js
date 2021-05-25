@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import {mongo} from '../config/index.js'
+import {mongo} from '../utils/config.js'
 
 let dbConnected = false
 

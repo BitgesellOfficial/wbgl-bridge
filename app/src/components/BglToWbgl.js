@@ -1,14 +1,26 @@
+import {useState} from 'react'
 import {useForm} from 'react-hook-form'
-import {Box, Button, TextField} from '@material-ui/core'
+import {Box, Button, TextField, Typography} from '@material-ui/core'
+import {post, url} from '../utils'
 
 function BglToWbgl() {
-  const {register, handleSubmit, formState: {errors}} = useForm()
+  const {register, handleSubmit, setError, setFocus, formState: {errors}} = useForm()
+  const [submitting, setSubmitting] = useState(false)
+  const [sendAddress, setSendAddress] = useState(false)
 
   const onSubmit = data => {
-    console.log(data)
+    setSubmitting(true)
+    post(url('/submit/bgl'), data).then(response => {
+      setSendAddress(response.bglAddress)
+    }).catch(result => {
+      if (result.hasOwnProperty('field')) {
+        setError(result.field, {type: 'manual', message: result.message})
+        setFocus(result.field)
+      }
+    }).finally(() => setSubmitting(false))
   }
 
-  return (
+  return !sendAddress ? (
     <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
       <TextField
         variant="filled"
@@ -21,9 +33,11 @@ function BglToWbgl() {
         error={!!errors.address}
       />
       <Box display="flex" justifyContent="center" m={1}>
-        <Button type="submit" variant="contained" color="primary" size="large">Continue</Button>
+        <Button type="submit" variant="contained" color="primary" size="large" disabled={submitting}>Continue</Button>
       </Box>
     </form>
+  ) : (
+    <Typography>Send BGL to: <code>{sendAddress}</code></Typography>
   )
 }
 

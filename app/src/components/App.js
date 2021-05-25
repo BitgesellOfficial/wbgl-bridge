@@ -3,6 +3,8 @@ import {Box, Container, CssBaseline, Tab, Tabs} from '@material-ui/core'
 import BglToWbgl from './BglToWbgl'
 import WbglToBgl from './WbglToBgl'
 
+import '@fontsource/roboto'
+
 function TabPanel(props) {
   const {children, value, index, ...other} = props
 

@@ -9,6 +9,7 @@ export const healthCheck = async (req, res) => {
     res.json({
       status: 'ok',
       blockchainInfo,
+      blockCount: await RPC.getBlockCount(),
       bglBalance: await RPC.getBalance(),
       ethChain: await Eth.getChain(),
       gasPrice: await Eth.getGasPrice(),
