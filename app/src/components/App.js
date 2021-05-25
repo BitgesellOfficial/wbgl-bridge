@@ -32,7 +32,7 @@ function App() {
     <React.Fragment>
       <CssBaseline/>
       <Container maxWidth="sm">
-        <Tabs value={tab} onChange={changeTab}>
+        <Tabs value={tab} onChange={changeTab} variant="fullWidth">
           <Tab label="BGL to WBGL"/>
           <Tab label="WBGL to BGL"/>
         </Tabs>
