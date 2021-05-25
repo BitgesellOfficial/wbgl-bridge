@@ -10,5 +10,6 @@ app.use(express.json())
 
 app.get('/', IndexController.healthCheck)
 app.post('/submit/bgl', SubmitController.bglToWbgl)
+app.post('/submit/wbgl', SubmitController.wbglToBgl)
 
 export default app

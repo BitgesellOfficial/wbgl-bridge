@@ -16,7 +16,7 @@ export const getBlockCount = async () => await getClient().command('getblockcoun
 
 export const getBalance = async () => await getClient().command('getbalance')
 
-export const validateAddress = async address => await getClient().command('validateaddress', {address}).isvalid
+export const validateAddress = async address => (await getClient().command('validateaddress', address)).isvalid
 
 export const createAddress = async () => await getClient().command('getnewaddress')
 

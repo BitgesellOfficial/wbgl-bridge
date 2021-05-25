@@ -4,9 +4,9 @@ import fs from 'fs'
 import {eth} from '../utils/config.js'
 
 export const web3 = new Web3(eth.endpoint)
-const WBGL = new web3.eth.Contract(JSON.parse(fs.readFileSync('abi/WBGL.json', 'utf8')), eth.contract)
-const decimals = await WBGL.methods['decimals']().call()
-const bn = web3.utils.toBN
+export const WBGL = new web3.eth.Contract(JSON.parse(fs.readFileSync('abi/WBGL.json', 'utf8')), eth.contract)
+export const decimals = await WBGL.methods['decimals']().call()
+export const bn = web3.utils.toBN
 
 export const getChain = () => web3.eth.net.getNetworkType()
 
@@ -19,12 +19,16 @@ export const getEstimateGas = async (amount) => {
   return await WBGL.methods['transfer'](eth.account, toBaseUnit(amount)).estimateGas({from: eth.account})
 }
 
-export const getWBGLBalance = async () => {
-  const balance = bn(await WBGL.methods['balanceOf'](eth.account).call())
+export const convertWGBLBalance = (number, resultDecimals = decimals) => {
+  const balance = bn(number)
   const divisor = bn(10).pow(bn(decimals))
   const beforeDec = balance.div(divisor).toString()
-  const afterDec = balance.mod(divisor).toString()
+  const afterDec = balance.mod(divisor).toString().padStart(decimals, '0').substring(0, resultDecimals)
   return beforeDec + (afterDec !== '0' ? '.' + afterDec : '')
+}
+
+export const getWBGLBalance = async () => {
+  return convertWGBLBalance(await WBGL.methods['balanceOf'](eth.account).call())
 }
 
 export const getTransactionCount = async () => await web3.eth.getTransactionCount(eth.account)
@@ -51,6 +55,7 @@ export const sendWBGL = (address, amount) => {
       })
       .on('error', error => reject(error))
       .then(receipt => resolve(receipt))
+      .catch(console.error)
   })
 }
 

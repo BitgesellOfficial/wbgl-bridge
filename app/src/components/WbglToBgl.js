@@ -1,12 +1,22 @@
+import {useState} from 'react'
 import {useForm} from 'react-hook-form'
-import {Box, Button, TextField} from '@material-ui/core'
+import {Box, Button, TextField, Typography} from '@material-ui/core'
+import {post, url} from '../utils'
 
 function WbglToBgl() {
-  const {register, handleSubmit, getValues, formState: {errors}} = useForm()
+  const {register, handleSubmit, getValues, setError, setFocus, formState: {errors}} = useForm()
+  const [submitting, setSubmitting] = useState(false)
+  const [sendAddress, setSendAddress] = useState('')
+
+  const signatureObject = signature => /^0x[0-9a-f]+$/.test(signature) ? {
+    address: getValues('ethAddress'),
+    msg: getValues('bglAddress'),
+    sig: signature,
+  } : JSON.parse(signature)
 
   const validateSignature = value => {
     try {
-      const signature = JSON.parse(value)
+      const signature = signatureObject(value)
       if (typeof signature === 'object' && signature !== null) {
         if (signature.hasOwnProperty('address') && signature.hasOwnProperty('msg') && signature.hasOwnProperty('sig')) {
           if (signature.address === getValues('ethAddress') && signature.msg === getValues('bglAddress')) {
@@ -20,12 +30,21 @@ function WbglToBgl() {
     }
   }
   const onSubmit = data => {
-    data.signature = JSON.parse(data.signature)
+    data.signature = signatureObject(data.signature)
     console.log(data)
+    post(url('/submit/wbgl'), data).then(response => {
+      console.log(response)
+      setSendAddress(response.ethAddress)
+    }).catch(result => {
+      if (result.hasOwnProperty('field')) {
+        setError(result.field, {type: 'manual', message: result.message})
+        setFocus(result.field)
+      }
+    }).finally(() => setSubmitting(false))
   }
   const signatureHelperText = "Sign your BGL address with your Ethereum wallet's private key and paste the result here. You can sign your address here: https://app.mycrypto.com/sign-message"
 
-  return (
+  return !sendAddress ? (
     <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
       <TextField
         variant="filled"
@@ -59,9 +78,11 @@ function WbglToBgl() {
         error={!!errors['signature']}
       />
       <Box display="flex" justifyContent="center" m={1}>
-        <Button type="submit" variant="contained" color="primary" size="large">Continue</Button>
+        <Button type="submit" variant="contained" color="primary" size="large" disabled={submitting}>Continue</Button>
       </Box>
     </form>
+  ) : (
+    <Typography>Send WBGL tokens to: <code>{sendAddress}</code></Typography>
   )
 }
 
