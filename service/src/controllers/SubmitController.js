@@ -24,6 +24,7 @@ export const bglToWbgl = async (req, res) => {
       to: data.address,
     })
   }
+  transfer.markModified('type')
   await transfer.save()
 
   res.json({
@@ -85,6 +86,7 @@ export const wbglToBgl = async (req, res) => {
       to: data.bglAddress,
     })
   }
+  transfer.markModified('type')
   await transfer.save()
 
   res.json({
