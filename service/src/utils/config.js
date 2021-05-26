@@ -2,12 +2,17 @@ export const env = process.env.NODE_ENV || 'development'
 
 export const port = process.env.PORT || '8080'
 
-export const rpc = {
+const rpcConfig = {
   host: process.env.RPC_HOST || 'localhost',
   port: process.env.RPC_PORT || '3445',
-  username: process.env.RPC_USER,
-  password: process.env.RPC_PASSWORD,
 }
+if (process.env.hasOwnProperty('RPC_USER') && process.env.RPC_USER) {
+  rpcConfig.username = process.env.RPC_USER
+}
+if (process.env.hasOwnProperty('RPC_PASSWORD') && process.env.RPC_PASSWORD) {
+  rpcConfig.password = process.env.RPC_PASSWORD
+}
+export const rpc = rpcConfig
 
 export const eth = {
   endpoint: process.env.ETH_ENDPOINT,
