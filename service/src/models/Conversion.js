@@ -7,6 +7,7 @@ const schema = new mongoose.Schema({
   address: {type: String, required: true},
   amount: {type: Number, required: true},
   txid: String,
+  receipt: Object,
   status: {type: String, default: 'pending'},
 })
 

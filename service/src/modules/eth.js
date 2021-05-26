@@ -3,7 +3,18 @@ import {Transaction} from 'ethereumjs-tx'
 import fs from 'fs'
 import {eth} from '../utils/config.js'
 
-export const web3 = new Web3(eth.endpoint)
+const provider = new Web3.providers.WebsocketProvider(eth.endpoint, {
+  clientConfig: {
+    keepalive: true,
+    keepaliveInterval: 60000,
+  },
+  reconnect: {
+    auto: true,
+    delay: 2500,
+    onTimeout: true,
+  },
+})
+export const web3 = new Web3(provider)
 export const WBGL = new web3.eth.Contract(JSON.parse(fs.readFileSync('abi/WBGL.json', 'utf8')), eth.contract)
 export const decimals = await WBGL.methods['decimals']().call()
 export const bn = web3.utils.toBN
@@ -50,12 +61,9 @@ export const sendWBGL = (address, amount) => {
 
     const serializedTx = '0x' + tx.serialize().toString('hex')
     web3.eth.sendSignedTransaction(serializedTx)
-      .once('transactionHash', hash => {
-        //
-      })
       .on('error', error => reject(error))
       .then(receipt => resolve(receipt))
-      .catch(console.error)
+      .catch(reject)
   })
 }
 

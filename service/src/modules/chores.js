@@ -12,7 +12,7 @@ function expireDate() {
 
 async function checkTransactions() {
   const blockHash = await Data.get('lastBglBlockHash')
-  const result = await RPC.listSinceBlock(blockHash || undefined)
+  const result = await RPC.listSinceBlock(blockHash || undefined, 2)
 
   result.transactions.filter(tx => tx.confirmations >= 3 && tx.category === 'receive').forEach(tx => {
     Transfer.findOne({type: 'bgl', from: tx.address, updatedAt: {$gte: expireDate().toISOString()}}).exec().then(async transfer => {
@@ -36,12 +36,13 @@ async function checkTransactions() {
 
         try {
           const receipt = await Eth.sendWBGL(transfer.to, tx['amount'].toString())
-          console.log(receipt)
-          conversion.tx = receipt.transactionHash
           conversion.status = 'sent'
+          conversion.txid = receipt.transactionHash
+          conversion.receipt = receipt
+          conversion.markModified('receipt')
           await conversion.save()
         } catch (e) {
-          console.error(`Error sending ${tx['amount']} WBGL to ${transfer.to}`, e)
+          console.log(`Error sending ${tx['amount']} WBGL to ${transfer.to}`, e)
           conversion.status = 'error'
           await conversion.save()
         }
