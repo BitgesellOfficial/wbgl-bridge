@@ -96,6 +96,6 @@ async function subscribeToTokenTransfers() {
 }
 
 export const init = () => {
-  checkTransactions().then(() => setInterval(checkTransactions, 60000))
+  checkTransactions().then(() => setInterval(checkTransactions, 60000)).catch(console.log)
   subscribeToTokenTransfers().then(() => {})
 }

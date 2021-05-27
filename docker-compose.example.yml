@@ -6,6 +6,8 @@ services:
       context: ./app
       args:
         - NODE_ENV=development
+    depends_on:
+      - service
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
@@ -29,6 +31,9 @@ services:
       context: ./service
       args:
         - NODE_ENV=development
+    depends_on:
+      - core
+      - db
     environment:
       NODE_ENV: development
       PORT: 8480
@@ -72,6 +77,8 @@ services:
     image: mongo-express
     ports:
       - 8481:8081
+    depends_on:
+      - db
     environment:
       - ME_CONFIG_MONGODB_SERVER=db
       - ME_CONFIG_MONGODB_ADMINUSERNAME=root
