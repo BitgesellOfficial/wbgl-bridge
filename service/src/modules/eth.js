@@ -2,6 +2,7 @@ import Web3 from 'web3'
 import {Transaction} from 'ethereumjs-tx'
 import fs from 'fs'
 import {eth} from '../utils/config.js'
+import {Data} from '../modules/index.js'
 
 const provider = new Web3.providers.WebsocketProvider(eth.endpoint, {
   clientConfig: {
@@ -42,28 +43,36 @@ export const getWBGLBalance = async () => {
   return convertWGBLBalance(await WBGL.methods['balanceOf'](eth.account).call())
 }
 
-export const getTransactionCount = async () => await web3.eth.getTransactionCount(eth.account)
+export const getTransactionCount = async () => await web3.eth.getTransactionCount(eth.account, 'pending')
 
-export const sendWBGL = (address, amount) => {
+export const sendWBGL = (address, amount, onTxHash = console.log) => {
   return new Promise(async (resolve, reject) => {
+    const nonce = await Data.get('nonce', 0)
     const data = WBGL.methods['transfer'](address, toBaseUnit(amount)).encodeABI()
     const rawTx = {
-      nonce: web3.utils.toHex(await getTransactionCount()),
-      gasPrice: web3.utils.toHex(Math.ceil(parseFloat(await getGasPrice()))),
+      networkId: await web3.eth.net.getId(),
+      nonce: web3.utils.toHex(nonce),
+      gasPrice: web3.utils.toHex(Math.ceil(1.25 * parseFloat(await getGasPrice()))),
       gasLimit: web3.utils.toHex(await getEstimateGas(amount) * 2),
       to: eth.contract,
       value: '0x00',
       data,
     }
+    console.log(rawTx)
+
     const chain = await getChain()
     const tx = new Transaction(rawTx, {chain})
     tx.sign(eth.key)
 
     const serializedTx = '0x' + tx.serialize().toString('hex')
+    console.log('Serialized tx: ' + serializedTx)
     web3.eth.sendSignedTransaction(serializedTx)
-      .on('error', error => reject(error))
-      .then(receipt => resolve(receipt))
+      .on('transactionHash', onTxHash)
+      .on('error', reject)
+      .then(resolve)
       .catch(reject)
+
+    await Data.set('nonce', nonce + 1)
   })
 }
 

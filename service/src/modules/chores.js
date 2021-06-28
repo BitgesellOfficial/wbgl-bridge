@@ -1,4 +1,4 @@
-import {eth, rpc} from '../utils/config.js'
+import {eth, rpc, confirmations} from '../utils/config.js'
 import {Data, RPC, Eth} from './index.js'
 import Transaction from '../models/Transaction.js'
 import Transfer from '../models/Transfer.js'
@@ -12,9 +12,9 @@ function expireDate() {
 
 async function checkTransactions() {
   const blockHash = await Data.get('lastBglBlockHash')
-  const result = await RPC.listSinceBlock(blockHash || undefined, rpc.confirmations)
+  const result = await RPC.listSinceBlock(blockHash || undefined, confirmations.bgl)
 
-  result.transactions.filter(tx => tx.confirmations >= rpc.confirmations && tx.category === 'receive').forEach(tx => {
+  result.transactions.filter(tx => tx.confirmations >= confirmations.bgl && tx.category === 'receive').forEach(tx => {
     Transfer.findOne({type: 'bgl', from: tx.address, updatedAt: {$gte: expireDate().toISOString()}}).exec().then(async transfer => {
       if (transfer && ! await Transaction.findOne({id: tx['txid']}).exec()) {
         const transaction = await Transaction.create({
@@ -35,9 +35,12 @@ async function checkTransactions() {
         })
 
         try {
-          const receipt = await Eth.sendWBGL(transfer.to, tx['amount'].toString())
+          const receipt = await Eth.sendWBGL(transfer.to, tx['amount'].toString(), async txHash => {
+            console.log(`txHash: ${txHash}`)
+            conversion.txid = txHash
+            await conversion.save()
+          })
           conversion.status = 'sent'
-          conversion.txid = receipt.transactionHash
           conversion.receipt = receipt
           conversion.markModified('receipt')
           await conversion.save()
@@ -54,7 +57,7 @@ async function checkTransactions() {
 }
 
 async function subscribeToTokenTransfers() {
-  const blockNumber = parseInt(await Data.get('lastEthBlockNumber', 0))
+  const blockNumber = await Data.get('lastEthBlockNumber', 0)
   Eth.WBGL.events.Transfer({
     fromBlock: blockNumber,
     filter: {to: eth.account},
@@ -91,7 +94,7 @@ async function subscribeToTokenTransfers() {
       }
     })
     await Data.set('lastEthBlockHash', event.blockHash)
-    await Data.set('lastEthBlockNumber', event.blockNumber.toString())
+    await Data.set('lastEthBlockNumber', event.blockNumber)
   })
 }
 

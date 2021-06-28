@@ -12,7 +12,6 @@ if (process.env.hasOwnProperty('RPC_USER') && process.env.RPC_USER) {
 if (process.env.hasOwnProperty('RPC_PASSWORD') && process.env.RPC_PASSWORD) {
   rpcConfig.password = process.env.RPC_PASSWORD
 }
-rpcConfig.confirmations = 2
 export const rpc = rpcConfig
 
 export const eth = {
@@ -25,4 +24,8 @@ export const eth = {
 export const mongo = {
   url: process.env.DB_CONNECTION,
   database: process.env.DB_DATABASE || 'wbgl_bridge',
+}
+
+export const confirmations = {
+  bgl: process.env.BGL_MIN_CONFIRMATIONS || 3
 }

@@ -41,6 +41,7 @@ services:
       RPC_PORT: 8455
       RPC_USER: localuser
       RPC_PASSWORD: devpass
+      BGL_MIN_CONFIRMATIONS: 3
       ETH_ENDPOINT: ""
       ETH_ACCOUNT: ""
       ETH_PRIVKEY: ""

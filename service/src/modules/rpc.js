@@ -1,5 +1,5 @@
 import Client from 'bitcoin-core'
-import {rpc} from '../utils/config.js'
+import {rpc, confirmations} from '../utils/config.js'
 
 let client
 
@@ -20,7 +20,7 @@ export const validateAddress = async address => (await getClient().command('vali
 
 export const createAddress = async () => await getClient().command('getnewaddress')
 
-export const listSinceBlock = async (blockHash, confirmations = rpc.confirmations) => {
+export const listSinceBlock = async (blockHash, confirmations = confirmations.bgl) => {
   return await getClient().command('listsinceblock', blockHash ? blockHash : undefined, confirmations)
 }
 
