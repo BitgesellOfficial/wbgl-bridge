@@ -12,6 +12,7 @@ if (process.env.hasOwnProperty('RPC_USER') && process.env.RPC_USER) {
 if (process.env.hasOwnProperty('RPC_PASSWORD') && process.env.RPC_PASSWORD) {
   rpcConfig.password = process.env.RPC_PASSWORD
 }
+rpcConfig.confirmations = 2
 export const rpc = rpcConfig
 
 export const eth = {

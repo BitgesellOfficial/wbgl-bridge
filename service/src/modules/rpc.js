@@ -20,7 +20,7 @@ export const validateAddress = async address => (await getClient().command('vali
 
 export const createAddress = async () => await getClient().command('getnewaddress')
 
-export const listSinceBlock = async (blockHash, confirmations = 3) => {
+export const listSinceBlock = async (blockHash, confirmations = rpc.confirmations) => {
   return await getClient().command('listsinceblock', blockHash ? blockHash : undefined, confirmations)
 }
 

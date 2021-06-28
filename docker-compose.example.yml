@@ -11,7 +11,7 @@ services:
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
-      - SERVICE_URL=localhost:8480
+      - REACT_APP_SERVICE_URL=localhost:8480
       - SSL=false
     tty: true
     ports:

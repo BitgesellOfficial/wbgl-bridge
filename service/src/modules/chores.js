@@ -1,4 +1,4 @@
-import {eth} from '../utils/config.js'
+import {eth, rpc} from '../utils/config.js'
 import {Data, RPC, Eth} from './index.js'
 import Transaction from '../models/Transaction.js'
 import Transfer from '../models/Transfer.js'
@@ -12,9 +12,9 @@ function expireDate() {
 
 async function checkTransactions() {
   const blockHash = await Data.get('lastBglBlockHash')
-  const result = await RPC.listSinceBlock(blockHash || undefined, 2)
+  const result = await RPC.listSinceBlock(blockHash || undefined, rpc.confirmations)
 
-  result.transactions.filter(tx => tx.confirmations >= 3 && tx.category === 'receive').forEach(tx => {
+  result.transactions.filter(tx => tx.confirmations >= rpc.confirmations && tx.category === 'receive').forEach(tx => {
     Transfer.findOne({type: 'bgl', from: tx.address, updatedAt: {$gte: expireDate().toISOString()}}).exec().then(async transfer => {
       if (transfer && ! await Transaction.findOne({id: tx['txid']}).exec()) {
         const transaction = await Transaction.create({
