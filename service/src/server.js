@@ -10,3 +10,8 @@ const server = http.createServer(app)
 server.listen(parseInt(port), () => {
   console.log(`listening on *:${port}`)
 })
+
+process.on('uncaughtException', error => {
+  console.log('UNCAUGHT EXCEPTION:', error)
+  process.exit(1)
+})
