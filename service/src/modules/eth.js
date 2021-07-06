@@ -20,7 +20,10 @@ export const WBGL = new web3.eth.Contract(JSON.parse(fs.readFileSync('abi/WBGL.j
 export const decimals = await WBGL.methods['decimals']().call()
 export const bn = web3.utils.toBN
 
-export const getChain = () => web3.eth.net.getNetworkType()
+export const getChain = async () => {
+  const chain = await web3.eth.net.getNetworkType()
+  return chain === 'main' ? 'mainnet' : chain
+}
 
 export const getGasPrice = async () => {
   const gasPrice = await web3.eth.getGasPrice()
@@ -50,7 +53,7 @@ export const sendWBGL = (address, amount, onTxHash = console.log) => {
     const nonce = await Data.get('nonce', 0)
     const data = WBGL.methods['transfer'](address, toBaseUnit(amount)).encodeABI()
     const rawTx = {
-      networkId: await web3.eth.net.getId(),
+      //networkId: await web3.eth.net.getId(),
       nonce: web3.utils.toHex(nonce),
       gasPrice: web3.utils.toHex(web3.utils.toWei(Math.ceil(1.25 * parseFloat(await getGasPrice())).toString(), 'Gwei')),
       gasLimit: web3.utils.toHex(await getEstimateGas(amount) * 2),
