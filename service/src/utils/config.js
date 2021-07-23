@@ -27,5 +27,5 @@ export const mongo = {
 }
 
 export const confirmations = {
-  bgl: process.env.BGL_MIN_CONFIRMATIONS || 3
+  bgl: parseInt(process.env.BGL_MIN_CONFIRMATIONS) || 3
 }

@@ -57,6 +57,7 @@ export const sendWBGL = (address, amount, onTxHash = console.log) => {
       nonce: web3.utils.toHex(nonce),
       gasPrice: web3.utils.toHex(web3.utils.toWei(Math.ceil(1.25 * parseFloat(await getGasPrice())).toString(), 'Gwei')),
       gasLimit: web3.utils.toHex(await getEstimateGas(amount) * 2),
+      from: eth.account,
       to: eth.contract,
       value: '0x00',
       data,
