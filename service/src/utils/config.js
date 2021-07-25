@@ -29,3 +29,5 @@ export const mongo = {
 export const confirmations = {
   bgl: parseInt(process.env.BGL_MIN_CONFIRMATIONS) || 3
 }
+
+export const feePercentage = 0.2

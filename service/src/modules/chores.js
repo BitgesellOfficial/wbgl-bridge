@@ -1,4 +1,4 @@
-import {eth, rpc, confirmations} from '../utils/config.js'
+import {eth, rpc, confirmations, feePercentage} from '../utils/config.js'
 import {Data, RPC, Eth} from './index.js'
 import Transaction from '../models/Transaction.js'
 import Transfer from '../models/Transfer.js'
@@ -9,6 +9,8 @@ function expireDate() {
   expireDate.setTime(expireDate.getTime() - (7 * 24 * 3600000))
   return expireDate
 }
+
+const deductFee = amount => parseFloat(((100 - feePercentage) * amount / 100).toFixed(3))
 
 async function checkTransactions() {
   const blockHash = await Data.get('lastBglBlockHash')
@@ -26,16 +28,18 @@ async function checkTransactions() {
           blockHash: tx['blockhash'],
           time: new Date(tx['time'] * 1000),
         })
+        const amount = deductFee(tx['amount'])
         const conversion = await Conversion.create({
           type: 'wbgl',
           transfer: transfer._id,
           transaction: transaction._id,
           address: transfer.to,
           amount: tx['amount'],
+          sendAmount: amount,
         })
 
         try {
-          const receipt = await Eth.sendWBGL(transfer.to, tx['amount'].toString(), async txHash => {
+          const receipt = await Eth.sendWBGL(transfer.to, amount.toString(), async txHash => {
             console.log(`txHash: ${txHash}`)
             conversion.txid = txHash
             await conversion.save()
@@ -45,7 +49,7 @@ async function checkTransactions() {
           conversion.markModified('receipt')
           await conversion.save()
         } catch (e) {
-          console.log(`Error sending ${tx['amount']} WBGL to ${transfer.to}`, e)
+          console.log(`Error sending ${amount} WBGL to ${transfer.to}`, e)
           conversion.status = 'error'
           await conversion.save()
         }
@@ -65,6 +69,7 @@ async function subscribeToTokenTransfers() {
     Transfer.findOne({type: 'wbgl', from: event.returnValues.from, updatedAt: {$gte: expireDate().toISOString()}}).exec().then(async transfer => {
       if (transfer && ! await Transaction.findOne({id: event.transactionHash}).exec()) {
         const amount = Eth.convertWGBLBalance(event.returnValues.value, 8)
+        const sendAmount = deductFee(amount)
         const transaction = await Transaction.create({
           type: 'wbgl',
           id: event.transactionHash,
@@ -80,14 +85,15 @@ async function subscribeToTokenTransfers() {
           transaction: transaction._id,
           address: transfer.to,
           amount,
+          sendAmount,
         })
 
         try {
-          conversion.txid = await RPC.send(transfer.to, amount)
+          conversion.txid = await RPC.send(transfer.to, sendAmount)
           conversion.status = 'sent'
           await conversion.save()
         } catch (e) {
-          console.error(`Error sending ${amount} BGL to ${transfer.to}`, e)
+          console.error(`Error sending ${sendAmount} BGL to ${transfer.to}`, e)
           conversion.status = 'error'
           await conversion.save()
         }

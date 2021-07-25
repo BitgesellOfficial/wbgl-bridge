@@ -6,6 +6,7 @@ const schema = new mongoose.Schema({
   transaction: {type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Transaction'},
   address: {type: String, required: true},
   amount: {type: Number, required: true},
+  sendAmount: {type: Number, required: true},
   txid: String,
   nonce: Number,
   receipt: Object,

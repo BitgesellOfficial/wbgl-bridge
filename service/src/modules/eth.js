@@ -53,7 +53,6 @@ export const sendWBGL = (address, amount, onTxHash = console.log) => {
     const nonce = await Data.get('nonce', 0)
     const data = WBGL.methods['transfer'](address, toBaseUnit(amount)).encodeABI()
     const rawTx = {
-      //networkId: await web3.eth.net.getId(),
       nonce: web3.utils.toHex(nonce),
       gasPrice: web3.utils.toHex(web3.utils.toWei(Math.ceil(1.25 * parseFloat(await getGasPrice())).toString(), 'Gwei')),
       gasLimit: web3.utils.toHex(await getEstimateGas(amount) * 2),
