@@ -21,6 +21,13 @@ export const eth = {
   contract: process.env.ETH_CONTRACT_ADDRESS,
 }
 
+export const bsc = {
+  endpoint: process.env.BSC_ENDPOINT,
+  account: process.env.BSC_ACCOUNT,
+  key: Buffer.from(process.env.BSC_PRIVKEY, 'hex'),
+  contract: process.env.BSC_CONTRACT_ADDRESS,
+}
+
 export const mongo = {
   url: process.env.DB_CONNECTION,
   database: process.env.DB_DATABASE || 'wbgl_bridge',

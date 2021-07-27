@@ -13,13 +13,15 @@ export const bglToWbgl = async (req, res) => {
     })
     return
   }
+  const chain = (data.hasOwnProperty('chain') && (data.chain !== 'eth')) ? 'bsc' : 'eth'
 
-  let transfer = await Transfer.findOne({type: 'bgl', to: data.address}).exec()
+  let transfer = await Transfer.findOne({type: 'bgl', chain, to: data.address}).exec()
   if (!transfer) {
     const bglAddress = await RPC.createAddress()
     transfer = new Transfer({
-      id: sha3('bgl' + bglAddress + data.address),
+      id: sha3('bgl' + chain + bglAddress + data.address),
       type: 'bgl',
+      chain,
       from: bglAddress,
       to: data.address,
     })
@@ -76,12 +78,14 @@ export const wbglToBgl = async (req, res) => {
     })
     return
   }
+  const chain = (data.hasOwnProperty('chain') && (data.chain !== 'eth')) ? 'bsc' : 'eth'
 
-  let transfer = await Transfer.findOne({type: 'wbgl', from: data.ethAddress}).exec()
+  let transfer = await Transfer.findOne({type: 'wbgl', chain, from: data.ethAddress}).exec()
   if (!transfer) {
     transfer = new Transfer({
-      id: sha3('wbgl' + data.ethAddress + data.bglAddress),
+      id: sha3('wbgl' + chain + data.ethAddress + data.bglAddress),
       type: 'wbgl',
+      chain,
       from: data.ethAddress,
       to: data.bglAddress,
     })

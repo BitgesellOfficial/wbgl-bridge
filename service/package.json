@@ -1,6 +1,6 @@
 {
   "name": "bgl-eth-bridge-service",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "BGL-WBGL(ETH) bridge",
   "main": "src/server.js",
   "license": "MIT",
@@ -11,6 +11,7 @@
   "dependencies": {
     "bitcoin-core": "^3.0.0",
     "cors": "^2.8.5",
+    "ethereumjs-common": "^1.5.2",
     "ethereumjs-tx": "^2.1.2",
     "express": "^4.17.1",
     "mongoose": "^5.12.10",

@@ -1,13 +1,13 @@
-import {eth, rpc, confirmations, feePercentage} from '../utils/config.js'
-import {Data, RPC, Eth} from './index.js'
+import {confirmations, feePercentage, bsc} from '../utils/config.js'
+import {Data, RPC, Eth, Bsc} from './index.js'
 import Transaction from '../models/Transaction.js'
 import Transfer from '../models/Transfer.js'
 import Conversion from '../models/Conversion.js'
 
-function expireDate() {
+const expireDate = () => {
   const expireDate = new Date()
   expireDate.setTime(expireDate.getTime() - (7 * 24 * 3600000))
-  return expireDate
+  return expireDate.toISOString()
 }
 
 const deductFee = amount => parseFloat(((100 - feePercentage) * amount / 100).toFixed(3))
@@ -17,8 +17,9 @@ async function checkTransactions() {
   const result = await RPC.listSinceBlock(blockHash || undefined, confirmations.bgl)
 
   result.transactions.filter(tx => tx.confirmations >= confirmations.bgl && tx.category === 'receive').forEach(tx => {
-    Transfer.findOne({type: 'bgl', from: tx.address, updatedAt: {$gte: expireDate().toISOString()}}).exec().then(async transfer => {
+    Transfer.findOne({type: 'bgl', from: tx.address, updatedAt: {$gte: expireDate()}}).exec().then(async transfer => {
       if (transfer && ! await Transaction.findOne({id: tx['txid']}).exec()) {
+        const Chain = transfer.chain === 'bsc' ? Bsc : Eth
         const transaction = await Transaction.create({
           type: 'bgl',
           id: tx['txid'],
@@ -39,7 +40,7 @@ async function checkTransactions() {
         })
 
         try {
-          const receipt = await Eth.sendWBGL(transfer.to, amount.toString(), async txHash => {
+          const receipt = await Chain.sendWBGL(transfer.to, amount.toString(), async txHash => {
             console.log(`txHash: ${txHash}`)
             conversion.txid = txHash
             await conversion.save()
@@ -60,15 +61,15 @@ async function checkTransactions() {
   await Data.set('lastBglBlockHash', result['lastblock'])
 }
 
-async function subscribeToTokenTransfers() {
-  const blockNumber = await Data.get('lastEthBlockNumber', 0)
-  Eth.WBGL.events.Transfer({
+async function subscribeToTokenTransfers(Chain = Eth, prefix = 'Eth') {
+  const blockNumber = await Data.get(`last${prefix}BlockNumber`, await Chain.web3.eth.getBlockNumber() - 1000)
+  Chain.WBGL.events.Transfer({
     fromBlock: blockNumber,
-    filter: {to: eth.account},
+    filter: {to: Chain.custodialAccountAddress},
   }).on('data', async event => {
-    Transfer.findOne({type: 'wbgl', from: event.returnValues.from, updatedAt: {$gte: expireDate().toISOString()}}).exec().then(async transfer => {
+    Transfer.findOne({type: 'wbgl', chain: Chain.id, from: event.returnValues.from, updatedAt: {$gte: expireDate()}}).exec().then(async transfer => {
       if (transfer && ! await Transaction.findOne({id: event.transactionHash}).exec()) {
-        const amount = Eth.convertWGBLBalance(event.returnValues.value, 8)
+        const amount = Chain.convertWGBLBalance(event.returnValues.value)
         const sendAmount = deductFee(amount)
         const transaction = await Transaction.create({
           type: 'wbgl',
@@ -99,12 +100,13 @@ async function subscribeToTokenTransfers() {
         }
       }
     })
-    await Data.set('lastEthBlockHash', event.blockHash)
-    await Data.set('lastEthBlockNumber', event.blockNumber)
+    await Data.set(`last${prefix}BlockHash`, event.blockHash)
+    await Data.set(`last${prefix}BlockNumber`, event.blockNumber)
   })
 }
 
 export const init = () => {
   checkTransactions().then(() => setInterval(checkTransactions, 60000)).catch(console.log)
-  subscribeToTokenTransfers().then(() => {})
+  subscribeToTokenTransfers(Eth, 'Eth').then(() => {})
+  subscribeToTokenTransfers(Bsc, 'Bsc').then(() => {})
 }

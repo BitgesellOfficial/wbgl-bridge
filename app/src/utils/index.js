@@ -16,3 +16,11 @@ export const post = async (url, data) => {
   })
   return response.json()
 }
+
+export function chainLabel(chain) {
+  const names = {
+    eth: 'Ethereum',
+    bsc: 'Binance Smart Chain',
+  }
+  return names[chain]
+}

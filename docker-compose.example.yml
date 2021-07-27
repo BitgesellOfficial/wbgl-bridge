@@ -46,6 +46,10 @@ services:
       ETH_ACCOUNT: ""
       ETH_PRIVKEY: ""
       ETH_CONTRACT_ADDRESS: ""
+      BSC_ENDPOINT: ""
+      BSC_ACCOUNT: ""
+      BSC_PRIVKEY: ""
+      BSC_CONTRACT_ADDRESS: ""
       DB_CONNECTION: mongodb://root:dev@db:27017
       DB_DATABASE: wbgl_bridge
     ports:

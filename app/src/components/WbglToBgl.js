@@ -1,12 +1,14 @@
 import {useState} from 'react'
 import {useForm} from 'react-hook-form'
-import {Box, Button, TextField, Typography} from '@material-ui/core'
-import {post, url} from '../utils'
+import {Box, Button, FormControlLabel, FormLabel, Radio, RadioGroup, TextField, Typography} from '@material-ui/core'
+import {chainLabel, post, url} from '../utils'
 
 function WbglToBgl() {
   const {register, handleSubmit, getValues, setError, setFocus, formState: {errors}} = useForm()
   const [submitting, setSubmitting] = useState(false)
   const [sendAddress, setSendAddress] = useState('')
+  const [chain, setChain] = useState('eth')
+  const onChangeChain = event => setChain(event.target.value)
 
   const signatureObject = signature => /^0x[0-9a-f]+$/.test(signature) ? {
     address: getValues('ethAddress'),
@@ -30,8 +32,9 @@ function WbglToBgl() {
     }
   }
   const onSubmit = data => {
+    if (!data.chain) data.chain = 'eth'
     data.signature = signatureObject(data.signature)
-    console.log(data)
+
     post(url('/submit/wbgl'), data).then(response => {
       console.log(response)
       setSendAddress(response.ethAddress)
@@ -42,17 +45,22 @@ function WbglToBgl() {
       }
     }).finally(() => setSubmitting(false))
   }
-  const signatureHelperText = "Sign your BGL address with your Ethereum wallet's private key and paste the result here. You can sign your address here: https://app.mycrypto.com/sign-message"
+  const signatureHelperText = `Sign your BGL address with your ${chainLabel(chain)} wallet's private key and paste the result here. You can sign your address here: https://app.mycrypto.com/sign-message`
 
   return !sendAddress ? (
     <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
+      <FormLabel>Chain:</FormLabel>
+      <RadioGroup defaultValue="eth" name="chain" {...register('chain')} onChange={onChangeChain}>
+        <FormControlLabel value="eth" control={<Radio />} label={'Ethereum'} />
+        <FormControlLabel value="bsc" control={<Radio />} label={'Binance Smart Chain'} />
+      </RadioGroup>
       <TextField
         variant="filled"
         margin="normal"
-        label="Ethereum Address"
+        label={`${chainLabel(chain)} Address`}
         fullWidth
         required
-        helperText={errors['ethAddress'] ? 'Please enter a valid ethereum address.' : 'Enter the Ethereum address you will be sending WBGL tokens from.'}
+        helperText={errors['ethAddress'] ? `Please enter a valid ${chainLabel(chain)} address.` : `Enter the ${chainLabel(chain)} address you will be sending WBGL tokens from.`}
         {...register('ethAddress', {required: true, pattern: /^0x[a-fA-F0-9]{40}$/i})}
         error={!!errors['ethAddress']}
       />
@@ -62,7 +70,7 @@ function WbglToBgl() {
         label="BGL Address"
         fullWidth
         required
-        helperText={errors['bglAddress'] ? 'Please enter a valid bitgesell address.' : 'Enter the BGL address coins will be sent to.'}
+        helperText={errors['bglAddress'] ? 'Please enter a valid Bitgesell address.' : 'Enter the BGL address coins will be sent to.'}
         {...register('bglAddress', {required: true, pattern: /^(bgl1|[135])[a-zA-HJ-NP-Z0-9]{25,39}$/i})}
         error={!!errors['bglAddress']}
       />

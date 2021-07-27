@@ -1,4 +1,4 @@
-import {Db, RPC, Eth} from '../modules/index.js'
+import {Db, RPC, Eth, Bsc} from '../modules/index.js'
 
 export const healthCheck = async (req, res) => {
   try {
@@ -8,13 +8,23 @@ export const healthCheck = async (req, res) => {
     }
     res.json({
       status: 'ok',
-      blockchainInfo,
-      blockCount: await RPC.getBlockCount(),
-      bglBalance: await RPC.getBalance(),
-      ethChain: await Eth.getChain(),
-      gasPrice: await Eth.getGasPrice(),
-      wbglBalance: await Eth.getWBGLBalance(),
-      transactionCount: await Eth.getTransactionCount(),
+      BGL: {
+        blockchainInfo,
+        blockCount: await RPC.getBlockCount(),
+        balance: await RPC.getBalance(),
+      },
+      ETH: {
+        chain: await Eth.getChain(),
+        gasPrice: await Eth.getGasPrice(),
+        wbglBalance: await Eth.getWBGLBalance(),
+        transactionCount: await Eth.getTransactionCount(),
+      },
+      BSC: {
+        chain: await Bsc.getChain(),
+        gasPrice: await Bsc.getGasPrice(),
+        wbglBalance: await Bsc.getWBGLBalance(),
+        transactionCount: await Bsc.getTransactionCount(),
+      },
     })
   } catch (e) {
     console.log(e)

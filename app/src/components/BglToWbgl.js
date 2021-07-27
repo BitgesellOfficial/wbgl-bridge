@@ -1,15 +1,20 @@
 import {useState} from 'react'
 import {useForm} from 'react-hook-form'
-import {Box, Button, TextField, Typography} from '@material-ui/core'
-import {post, url} from '../utils'
+import {Box, Button, FormControlLabel, FormLabel, Radio, RadioGroup, TextField, Typography} from '@material-ui/core'
+import {post, url, chainLabel} from '../utils'
 
 function BglToWbgl() {
   const {register, handleSubmit, setError, setFocus, formState: {errors}} = useForm()
   const [submitting, setSubmitting] = useState(false)
   const [sendAddress, setSendAddress] = useState(false)
+  const [chain, setChain] = useState('eth')
+  const onChangeChain = event => setChain(event.target.value)
 
   const onSubmit = data => {
+    if (!data.chain) data.chain = 'eth'
+
     setSubmitting(true)
+
     post(url('/submit/bgl'), data).then(response => {
       setSendAddress(response.bglAddress)
     }).catch(result => {
@@ -22,13 +27,18 @@ function BglToWbgl() {
 
   return !sendAddress ? (
     <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
+      <FormLabel>Chain:</FormLabel>
+      <RadioGroup defaultValue="eth" name="chain" {...register('chain')} onChange={onChangeChain}>
+        <FormControlLabel value="eth" control={<Radio />} label={'Ethereum'} />
+        <FormControlLabel value="bsc" control={<Radio />} label={'Binance Smart Chain'} />
+      </RadioGroup>
       <TextField
         variant="filled"
         margin="normal"
-        label="Ethereum Address"
+        label={`${chainLabel(chain)} Address`}
         fullWidth
         required
-        helperText={errors.address ? 'Please enter a valid ethereum address.' : 'Enter the Ethereum address to receive WBGL tokens at.'}
+        helperText={errors.address ? `Please enter a valid ${chainLabel(chain)} address.` : `Enter the ${chainLabel(chain)} address to receive WBGL tokens at.`}
         {...register('address', {required: true, pattern: /^0x[a-fA-F0-9]{40}$/i})}
         error={!!errors.address}
       />
