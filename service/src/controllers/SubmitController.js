@@ -74,7 +74,7 @@ export const wbglToBgl = async (req, res) => {
     res.status(400).json({
       status: 'error',
       field: 'signature',
-      message: 'Signature does not match the ethereum address provided.',
+      message: 'Signature does not match the address provided.',
     })
     return
   }

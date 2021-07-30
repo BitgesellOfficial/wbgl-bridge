@@ -34,7 +34,9 @@ export const mongo = {
 }
 
 export const confirmations = {
-  bgl: parseInt(process.env.BGL_MIN_CONFIRMATIONS) || 3
+  bgl: parseInt(process.env.BGL_MIN_CONFIRMATIONS) || 3,
+  eth: parseInt(process.env.ETH_MIN_CONFIRMATIONS) || 3,
+  bsc: parseInt(process.env.BSC_MIN_CONFIRMATIONS) || 3,
 }
 
 export const feePercentage = 0.2

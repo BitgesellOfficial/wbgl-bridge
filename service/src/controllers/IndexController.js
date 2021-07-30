@@ -14,13 +14,13 @@ export const healthCheck = async (req, res) => {
         balance: await RPC.getBalance(),
       },
       ETH: {
-        chain: await Eth.getChain(),
+        chain: Eth.getChain(),
         gasPrice: await Eth.getGasPrice(),
         wbglBalance: await Eth.getWBGLBalance(),
         transactionCount: await Eth.getTransactionCount(),
       },
       BSC: {
-        chain: await Bsc.getChain(),
+        chain: Bsc.getChain(),
         gasPrice: await Bsc.getGasPrice(),
         wbglBalance: await Bsc.getWBGLBalance(),
         transactionCount: await Bsc.getTransactionCount(),
@@ -28,6 +28,6 @@ export const healthCheck = async (req, res) => {
     })
   } catch (e) {
     console.log(e)
-    res.json(500, {status: 'error', message: 'RPC not available'})
+    res.status(500).json({status: 'error', message: 'RPC not available'})
   }
 }

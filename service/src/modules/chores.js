@@ -12,7 +12,7 @@ const expireDate = () => {
 
 const deductFee = amount => parseFloat(((100 - feePercentage) * amount / 100).toFixed(3))
 
-async function checkTransactions() {
+async function checkBglTransactions() {
   const blockHash = await Data.get('lastBglBlockHash')
   const result = await RPC.listSinceBlock(blockHash || undefined, confirmations.bgl)
 
@@ -32,6 +32,7 @@ async function checkTransactions() {
         const amount = deductFee(tx['amount'])
         const conversion = await Conversion.create({
           type: 'wbgl',
+          chain: transfer.chain,
           transfer: transfer._id,
           transaction: transaction._id,
           address: transfer.to,
@@ -40,14 +41,7 @@ async function checkTransactions() {
         })
 
         try {
-          const receipt = await Chain.sendWBGL(transfer.to, amount.toString(), async txHash => {
-            console.log(`txHash: ${txHash}`)
-            conversion.txid = txHash
-            await conversion.save()
-          })
-          conversion.status = 'sent'
-          conversion.receipt = receipt
-          conversion.markModified('receipt')
+          conversion.txid = await Chain.sendWBGL(transfer.to, amount.toString())
           await conversion.save()
         } catch (e) {
           console.log(`Error sending ${amount} WBGL to ${transfer.to}`, e)
@@ -59,20 +53,23 @@ async function checkTransactions() {
   })
 
   await Data.set('lastBglBlockHash', result['lastblock'])
+
+  setTimeout(checkBglTransactions, 60000)
 }
 
 async function subscribeToTokenTransfers(Chain = Eth, prefix = 'Eth') {
   const blockNumber = await Data.get(`last${prefix}BlockNumber`, await Chain.web3.eth.getBlockNumber() - 1000)
   Chain.WBGL.events.Transfer({
-    fromBlock: blockNumber,
+    fromBlock: blockNumber + 1,
     filter: {to: Chain.custodialAccountAddress},
   }).on('data', async event => {
     Transfer.findOne({type: 'wbgl', chain: Chain.id, from: event.returnValues.from, updatedAt: {$gte: expireDate()}}).exec().then(async transfer => {
-      if (transfer && ! await Transaction.findOne({id: event.transactionHash}).exec()) {
+      if (transfer && ! await Transaction.findOne({chain: Chain.id, id: event.transactionHash}).exec()) {
         const amount = Chain.convertWGBLBalance(event.returnValues.value)
         const sendAmount = deductFee(amount)
         const transaction = await Transaction.create({
           type: 'wbgl',
+          chain: Chain.id,
           id: event.transactionHash,
           transfer: transfer._id,
           address: event.returnValues.from,
@@ -82,6 +79,7 @@ async function subscribeToTokenTransfers(Chain = Eth, prefix = 'Eth') {
         })
         const conversion = await Conversion.create({
           type: 'bgl',
+          chain: Chain.id,
           transfer: transfer._id,
           transaction: transaction._id,
           address: transfer.to,
@@ -105,8 +103,27 @@ async function subscribeToTokenTransfers(Chain = Eth, prefix = 'Eth') {
   })
 }
 
-export const init = () => {
-  checkTransactions().then(() => setInterval(checkTransactions, 60000)).catch(console.log)
-  subscribeToTokenTransfers(Eth, 'Eth').then(() => {})
-  subscribeToTokenTransfers(Bsc, 'Bsc').then(() => {})
+async function checkPendingConversions(Chain) {
+  const conversions = await Conversion.find({chain: Chain.id, type: 'wbgl', status: 'pending', txid: {$exists: true}}).exec()
+  let blockNumber
+  for (const conversion of conversions) {
+    const receipt = await Chain.getTransactionReceipt(conversion.txid)
+    if (receipt && (blockNumber || await Chain.web3.eth.getBlockNumber()) - receipt.blockNumber >= Chain.confirmations) {
+      conversion.status = 'sent'
+      conversion.receipt = receipt
+      conversion.markModified('receipt')
+      await conversion.save()
+    }
+  }
+  setTimeout(() => checkPendingConversions(Chain), 60000)
+}
+
+export const init = async () => {
+  await subscribeToTokenTransfers(Eth, 'Eth')
+  await subscribeToTokenTransfers(Bsc, 'Bsc')
+
+  await checkBglTransactions()
+
+  await checkPendingConversions(Eth)
+  await checkPendingConversions(Bsc)
 }

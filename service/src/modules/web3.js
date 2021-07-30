@@ -4,25 +4,46 @@ import fs from 'fs'
 import {Data} from '../modules/index.js'
 import {toBaseUnit} from '../utils/index.js'
 
+const bn = Web3.utils.toBN
+const createWebsocketProvider = endpoint => {
+  return new Web3.providers.WebsocketProvider(endpoint, {
+    clientConfig: {
+      keepalive: true,
+      keepaliveInterval: 60000,
+    },
+    reconnect: {
+      auto: true,
+      delay: 2500,
+      onTimeout: true,
+    },
+  })
+}
+
 class Web3Base {
   decimals = 18
 
-  constructor(provider, id, contractAddress, custodialAccountAddress, custodialAccountKey, nonceDataName) {
+  constructor(endpoint, id, contractAddress, custodialAccountAddress, custodialAccountKey, nonceDataName, confirmations) {
     this.id = id
     this.contractAddress = contractAddress
     this.custodialAccountAddress = custodialAccountAddress
     this.custodialAccountKey = custodialAccountKey
     this.nonceDataName = nonceDataName
+    this.confirmations = confirmations
 
-    this.web3 = new Web3(provider)
-    this.bn = this.web3.utils.toBN
+    this.web3 = new Web3(createWebsocketProvider(endpoint))
     this.WBGL = new this.web3.eth.Contract(JSON.parse(fs.readFileSync('abi/WBGL.json', 'utf8')), contractAddress)
     this.WBGL.methods['decimals']().call().then(decimals => this.decimals = decimals)
+
+    this.init().then(() => {})
   }
 
-  async getChain() {
+  async init() {
     const chain = await this.web3.eth.net.getNetworkType()
-    return ['main', 'private'].includes(chain) ? 'mainnet' : chain
+    this.chain = ['main', 'private'].includes(chain) ? 'mainnet' : chain
+  }
+
+  getChain() {
+    return this.chain
   }
 
   async getGasPrice() {
@@ -39,8 +60,8 @@ class Web3Base {
   }
 
   convertWGBLBalance(number, resultDecimals = this.decimals) {
-    const balance = this.bn(number)
-    const divisor = this.bn(10).pow(this.bn(this.decimals))
+    const balance = bn(number)
+    const divisor = bn(10).pow(bn(this.decimals))
     const beforeDec = balance.div(divisor).toString()
     const afterDec = balance.mod(divisor).toString().padStart(this.decimals, '0').substring(0, resultDecimals)
     return beforeDec + (afterDec !== '0' ? '.' + afterDec : '')
@@ -50,10 +71,15 @@ class Web3Base {
     return await this.web3.eth.getTransactionCount(this.custodialAccountAddress, 'pending')
   }
 
-  sendWBGL(address, amount, onTxHash = console.log) {
+  async getTransactionReceipt(txid) {
+    return await this.web3.eth.getTransactionReceipt(txid)
+  }
+
+  sendWBGL(address, amount) {
     return new Promise(async (resolve, reject) => {
       const nonce = await Data.get(this.nonceDataName, 0)
       const data = this.WBGL.methods['transfer'](address, toBaseUnit(amount, this.decimals)).encodeABI()
+
       const rawTx = {
         nonce: this.web3.utils.toHex(nonce),
         gasPrice: this.web3.utils.toHex(this.web3.utils.toWei(Math.ceil(1.25 * parseFloat(await this.getGasPrice())).toString(), 'Gwei')),
@@ -71,9 +97,8 @@ class Web3Base {
       const serializedTx = '0x' + tx.serialize().toString('hex')
       console.log('Serialized tx: ' + serializedTx)
       this.web3.eth.sendSignedTransaction(serializedTx)
-        .on('transactionHash', onTxHash)
+        .on('transactionHash', resolve)
         .on('error', reject)
-        .then(resolve)
         .catch(reject)
 
       await Data.set(this.nonceDataName, nonce + 1)
@@ -81,8 +106,7 @@ class Web3Base {
   }
 
   async transactionOpts() {
-    const chain = await this.getChain()
-    return {chain}
+    return {chain: this.chain}
   }
 }
 
