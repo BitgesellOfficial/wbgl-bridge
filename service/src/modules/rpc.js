@@ -24,4 +24,11 @@ export const listSinceBlock = async (blockHash, confirmations = confirmations.bg
   return await getClient().command('listsinceblock', blockHash ? blockHash : undefined, confirmations)
 }
 
+export const getTransactionFromAddress = async (txid) => {
+  const rawTx = await getClient().command('getrawtransaction', txid, true)
+  const vin = rawTx['vin'][0]
+  const txIn = await getClient().command('getrawtransaction', vin.txid, true)
+  return txIn['vout'][vin['vout']]['scriptPubKey']['address']
+}
+
 export const send = async (address, amount) => await getClient().command('sendtoaddress', address, amount)

@@ -1,6 +1,6 @@
 import Transfer from '../models/Transfer.js'
-import {RPC, Eth} from '../modules/index.js'
-import {eth} from '../utils/config.js'
+import {RPC, Eth, Bsc} from '../modules/index.js'
+import {bsc, eth, feePercentage} from '../utils/config.js'
 import {isValidBglAddress, isValidEthAddress, sha3} from '../utils/index.js'
 
 export const bglToWbgl = async (req, res) => {
@@ -14,6 +14,7 @@ export const bglToWbgl = async (req, res) => {
     return
   }
   const chain = (data.hasOwnProperty('chain') && (data.chain !== 'eth')) ? 'bsc' : 'eth'
+  const Chain = (chain === 'eth') ? Eth : Bsc
 
   let transfer = await Transfer.findOne({type: 'bgl', chain, to: data.address}).exec()
   if (!transfer) {
@@ -33,6 +34,8 @@ export const bglToWbgl = async (req, res) => {
     status: 'ok',
     id: transfer.id,
     bglAddress: transfer.from,
+    balance: await Chain.getWBGLBalance(),
+    feePercentage: feePercentage,
   })
 }
 
@@ -70,7 +73,9 @@ export const wbglToBgl = async (req, res) => {
     })
     return
   }
-  if (data.ethAddress !== Eth.web3.eth.accounts.recover(data.bglAddress, data.signature.sig)) {
+  const chain = (data.hasOwnProperty('chain') && (data.chain !== 'eth')) ? 'bsc' : 'eth'
+  const Chain = (chain === 'eth') ? Eth : Bsc
+  if (data.ethAddress !== Chain.web3.eth.accounts.recover(data.bglAddress, data.signature.sig)) {
     res.status(400).json({
       status: 'error',
       field: 'signature',
@@ -78,7 +83,6 @@ export const wbglToBgl = async (req, res) => {
     })
     return
   }
-  const chain = (data.hasOwnProperty('chain') && (data.chain !== 'eth')) ? 'bsc' : 'eth'
 
   let transfer = await Transfer.findOne({type: 'wbgl', chain, from: data.ethAddress}).exec()
   if (!transfer) {
@@ -96,6 +100,8 @@ export const wbglToBgl = async (req, res) => {
   res.json({
     status: 'ok',
     id: transfer.id,
-    ethAddress: eth.account,
+    address: (chain === 'eth') ? eth.account : bsc.account,
+    balance: await RPC.getBalance(),
+    feePercentage: feePercentage,
   })
 }

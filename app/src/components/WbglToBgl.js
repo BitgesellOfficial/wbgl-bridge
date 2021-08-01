@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {Fragment, useState} from 'react'
 import {useForm} from 'react-hook-form'
 import {Box, Button, FormControlLabel, FormLabel, Radio, RadioGroup, TextField, Typography} from '@material-ui/core'
 import {chainLabel, post, url} from '../utils'
@@ -7,6 +7,8 @@ function WbglToBgl() {
   const {register, handleSubmit, getValues, setError, setFocus, formState: {errors}} = useForm()
   const [submitting, setSubmitting] = useState(false)
   const [sendAddress, setSendAddress] = useState('')
+  const [balance, setBalance] = useState(0)
+  const [feePercentage, setFeePercentage] = useState(0)
   const [chain, setChain] = useState('eth')
   const onChangeChain = event => setChain(event.target.value)
 
@@ -36,8 +38,9 @@ function WbglToBgl() {
     data.signature = signatureObject(data.signature)
 
     post(url('/submit/wbgl'), data).then(response => {
-      console.log(response)
-      setSendAddress(response.ethAddress)
+      setSendAddress(response.address)
+      setBalance(Math.floor(response.balance))
+      setFeePercentage(response.feePercentage)
     }).catch(result => {
       if (result.hasOwnProperty('field')) {
         setError(result.field, {type: 'manual', message: result.message})
@@ -90,7 +93,15 @@ function WbglToBgl() {
       </Box>
     </form>
   ) : (
-    <Typography>Send WBGL tokens to: <code>{sendAddress}</code></Typography>
+    <Fragment>
+      <Typography variant="body1" gutterBottom>Send WBGL tokens to: <code>{sendAddress}</code></Typography>
+      <Typography variant="body2" gutterBottom>
+        The currently available BGL balance is <b>{balance}</b>. If you send more WBGL than is available to complete the exchange, your WBGL will be returned to your address.
+      </Typography>
+      <Typography variant="body2" gutterBottom>
+        Please note, that a fee of <b>{feePercentage}%</b> will be automatically deducted from the transfer amount. This exchange pair is active for <b>7 days</b>.
+      </Typography>
+    </Fragment>
   )
 }
 

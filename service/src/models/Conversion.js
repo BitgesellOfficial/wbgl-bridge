@@ -11,6 +11,7 @@ const schema = new mongoose.Schema({
   txid: String,
   nonce: Number,
   receipt: Object,
+  returnTxid: String,
   status: {type: String, default: 'pending'},
 }, {timestamps: true})
 

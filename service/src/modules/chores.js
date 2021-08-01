@@ -12,6 +12,32 @@ const expireDate = () => {
 
 const deductFee = amount => parseFloat(((100 - feePercentage) * amount / 100).toFixed(3))
 
+async function returnBGL(conversion, address) {
+  try {
+    conversion.status = 'returned'
+    await conversion.save()
+    conversion.returnTxid = await RPC.send(address, conversion.amount)
+    await conversion.save()
+  } catch (e) {
+    console.error(`Error returning BGL to ${address}, conversion ID: ${conversion._id}.`, e)
+    conversion.status = 'error'
+    await conversion.save()
+  }
+}
+
+async function returnWBGL(Chain, conversion, address) {
+  try {
+    conversion.status = 'returned'
+    await conversion.save()
+    conversion.returnTxid = await Chain.sendWBGL(address, conversion.amount.toString())
+    await conversion.save()
+  } catch (e) {
+    console.error(`Error returning WBGL (${Chain.id}) to ${address}, conversion ID: ${conversion._id}.`, e)
+    conversion.status = 'error'
+    await conversion.save()
+  }
+}
+
 async function checkBglTransactions() {
   const blockHash = await Data.get('lastBglBlockHash')
   const result = await RPC.listSinceBlock(blockHash || undefined, confirmations.bgl)
@@ -20,11 +46,12 @@ async function checkBglTransactions() {
     Transfer.findOne({type: 'bgl', from: tx.address, updatedAt: {$gte: expireDate()}}).exec().then(async transfer => {
       if (transfer && ! await Transaction.findOne({id: tx['txid']}).exec()) {
         const Chain = transfer.chain === 'bsc' ? Bsc : Eth
+        const fromAddress = await RPC.getTransactionFromAddress(tx['txid'])
         const transaction = await Transaction.create({
           type: 'bgl',
           id: tx['txid'],
           transfer: transfer._id,
-          address: tx['address'],
+          address: fromAddress,
           amount: tx['amount'],
           blockHash: tx['blockhash'],
           time: new Date(tx['time'] * 1000),
@@ -40,6 +67,12 @@ async function checkBglTransactions() {
           sendAmount: amount,
         })
 
+        if (amount > await Chain.getWBGLBalance()) {
+          console.log(`Insufficient WBGL balance, returning ${tx['amount']} BGL to ${fromAddress}`)
+          await returnBGL(conversion, fromAddress)
+          return
+        }
+
         try {
           conversion.txid = await Chain.sendWBGL(transfer.to, amount.toString())
           await conversion.save()
@@ -47,6 +80,8 @@ async function checkBglTransactions() {
           console.log(`Error sending ${amount} WBGL to ${transfer.to}`, e)
           conversion.status = 'error'
           await conversion.save()
+
+          await returnBGL(conversion, fromAddress)
         }
       }
     })
@@ -58,7 +93,7 @@ async function checkBglTransactions() {
 }
 
 async function subscribeToTokenTransfers(Chain = Eth, prefix = 'Eth') {
-  const blockNumber = await Data.get(`last${prefix}BlockNumber`, await Chain.web3.eth.getBlockNumber() - 1000)
+  const blockNumber = await Data.get(`last${prefix}BlockNumber`, async () => await Chain.web3.eth.getBlockNumber() - 1000)
   Chain.WBGL.events.Transfer({
     fromBlock: blockNumber + 1,
     filter: {to: Chain.custodialAccountAddress},
@@ -87,6 +122,12 @@ async function subscribeToTokenTransfers(Chain = Eth, prefix = 'Eth') {
           sendAmount,
         })
 
+        if (amount > await RPC.getBalance()) {
+          console.log(`Insufficient BGL balance, returning ${amount} WBGL to ${transfer.from}`)
+          await returnWBGL(Chain, conversion, transfer.from)
+          return
+        }
+
         try {
           conversion.txid = await RPC.send(transfer.to, sendAmount)
           conversion.status = 'sent'
@@ -95,6 +136,8 @@ async function subscribeToTokenTransfers(Chain = Eth, prefix = 'Eth') {
           console.error(`Error sending ${sendAmount} BGL to ${transfer.to}`, e)
           conversion.status = 'error'
           await conversion.save()
+
+          await returnWBGL(Chain, conversion, transfer.from)
         }
       }
     })

@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useState, Fragment} from 'react'
 import {useForm} from 'react-hook-form'
 import {Box, Button, FormControlLabel, FormLabel, Radio, RadioGroup, TextField, Typography} from '@material-ui/core'
 import {post, url, chainLabel} from '../utils'
@@ -7,6 +7,8 @@ function BglToWbgl() {
   const {register, handleSubmit, setError, setFocus, formState: {errors}} = useForm()
   const [submitting, setSubmitting] = useState(false)
   const [sendAddress, setSendAddress] = useState(false)
+  const [balance, setBalance] = useState(0)
+  const [feePercentage, setFeePercentage] = useState(0)
   const [chain, setChain] = useState('eth')
   const onChangeChain = event => setChain(event.target.value)
 
@@ -17,6 +19,8 @@ function BglToWbgl() {
 
     post(url('/submit/bgl'), data).then(response => {
       setSendAddress(response.bglAddress)
+      setBalance(Math.floor(response.balance))
+      setFeePercentage(response.feePercentage)
     }).catch(result => {
       if (result.hasOwnProperty('field')) {
         setError(result.field, {type: 'manual', message: result.message})
@@ -47,7 +51,15 @@ function BglToWbgl() {
       </Box>
     </form>
   ) : (
-    <Typography>Send BGL to: <code>{sendAddress}</code></Typography>
+    <Fragment>
+      <Typography variant="body1" gutterBottom>Send BGL to: <code>{sendAddress}</code></Typography>
+      <Typography variant="body2" gutterBottom>
+        The currently available WBGL balance is <b>{balance}</b>. If you send more BGL than is available to complete the exchange, your BGL will be returned to your address.
+      </Typography>
+      <Typography variant="body2" gutterBottom>
+        Please note, that a fee of <b>{feePercentage}%</b> will be automatically deducted from the transfer amount. This exchange pair is active for <b>7 days</b>.
+      </Typography>
+    </Fragment>
   )
 }
 

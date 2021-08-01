@@ -77,7 +77,7 @@ class Web3Base {
 
   sendWBGL(address, amount) {
     return new Promise(async (resolve, reject) => {
-      const nonce = await Data.get(this.nonceDataName, 0)
+      const nonce = await Data.get(this.nonceDataName, async () => await this.getTransactionCount())
       const data = this.WBGL.methods['transfer'](address, toBaseUnit(amount, this.decimals)).encodeABI()
 
       const rawTx = {

@@ -15,9 +15,9 @@ services:
       - SSL=false
     tty: true
     ports:
-      - 8406:19006
-      - 8401:19001
-      - 8402:19002
+      - "8406:19006"
+      - "8401:19001"
+      - "8402:19002"
     volumes:
       - ./app:/app:delegated
       - ./app/package.json:/app/package.json
@@ -55,7 +55,7 @@ services:
       DB_CONNECTION: mongodb://root:dev@db:27017
       DB_DATABASE: wbgl_bridge
     ports:
-    - 8480:8480
+    - "8480:8480"
     volumes:
     - ./service:/service:delegated
     - ./service/package.json:/service/package.json
@@ -68,7 +68,7 @@ services:
     volumes:
     - /root/.BGL
     ports:
-    - 8455
+    - "8455"
 
   db:
     image: mongo
@@ -83,7 +83,7 @@ services:
   mongo-express:
     image: mongo-express
     ports:
-      - 8481:8081
+      - "8481:8081"
     depends_on:
       - db
     environment:
