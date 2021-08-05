@@ -1,6 +1,6 @@
 {
-  "name": "bgl-eth-bridge-service",
-  "version": "0.2.0",
+  "name": "bgl-wbgl-bridge-service",
+  "version": "0.3.0",
   "description": "BGL-WBGL(ETH) bridge",
   "main": "src/server.js",
   "license": "MIT",

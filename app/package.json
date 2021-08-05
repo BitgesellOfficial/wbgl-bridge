@@ -1,6 +1,6 @@
 {
-  "name": "bgl-eth-bridge",
-  "version": "0.2.0",
+  "name": "bgl-wbgl-bridge",
+  "version": "0.3.0",
   "license": "MIT",
   "dependencies": {
     "@fontsource/roboto": "^4.3.0",
