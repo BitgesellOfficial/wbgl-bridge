@@ -54,6 +54,7 @@ services:
       BSC_MIN_CONFIRMATIONS: 3
       DB_CONNECTION: mongodb://root:dev@db:27017
       DB_DATABASE: wbgl_bridge
+      FEE_PERCENTAGE: 1
     ports:
     - "8480:8480"
     volumes:

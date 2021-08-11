@@ -39,4 +39,4 @@ export const confirmations = {
   bsc: parseInt(process.env.BSC_MIN_CONFIRMATIONS) || 3,
 }
 
-export const feePercentage = 0.2
+export const feePercentage = process.env.FEE_PERCENTAGE || 1
