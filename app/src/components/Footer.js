@@ -11,7 +11,7 @@ function useBalance(id) {
   const {data, error} = useSWR(url(`/balance/${id}`), fetcher, {refreshInterval: 60000})
   return {
     balance: data,
-    isLoading: !error && !data,
+    isLoading: !error && typeof data !== 'number',
     isError: error,
   }
 }
@@ -32,17 +32,17 @@ function Footer() {
           </Box>
           <Box>
             <Typography variant="subtitle1">
-              BGL: <span className={balanceClass(bglLoading)}>{bglBalance || 'Loading...'}</span>
+              BGL: <span className={balanceClass(bglLoading)}>{bglLoading ? 'Loading...' : bglBalance}</span>
             </Typography>
           </Box>
           <Box>
             <Typography variant="subtitle1">
-              WBGL (Eth): <span className={balanceClass(ethLoading)}>{ethBalance || 'Loading...'}</span>
+              WBGL (Eth): <span className={balanceClass(ethLoading)}>{ethLoading ? 'Loading...' : ethBalance}</span>
             </Typography>
           </Box>
           <Box>
             <Typography variant="subtitle1">
-              WBGL (BSC): <span className={balanceClass(bscLoading)}>{bscBalance || 'Loading...'}</span>
+              WBGL (BSC): <span className={balanceClass(bscLoading)}>{bscLoading ? 'Loading...' : bscBalance}</span>
             </Typography>
           </Box>
         </Box>
