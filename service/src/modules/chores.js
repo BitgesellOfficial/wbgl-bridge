@@ -98,7 +98,8 @@ async function subscribeToTokenTransfers(Chain = Eth, prefix = 'Eth') {
     fromBlock: blockNumber + 1,
     filter: {to: Chain.custodialAccountAddress},
   }).on('data', async event => {
-    Transfer.findOne({type: 'wbgl', chain: Chain.id, from: event.returnValues.from, updatedAt: {$gte: expireDate()}}).exec().then(async transfer => {
+    const fromQuery = {$regex: new RegExp(`^${event.returnValues.from}$`, 'i')}
+    Transfer.findOne({type: 'wbgl', chain: Chain.id, from: fromQuery, updatedAt: {$gte: expireDate()}}).exec().then(async transfer => {
       if (transfer && ! await Transaction.findOne({chain: Chain.id, id: event.transactionHash}).exec()) {
         const amount = Chain.convertWGBLBalance(event.returnValues.value)
         const sendAmount = deductFee(amount)

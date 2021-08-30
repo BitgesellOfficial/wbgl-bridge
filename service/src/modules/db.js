@@ -26,4 +26,5 @@ export const isConnected = () => {
 
 export const close = async () => {
   await mongoose.disconnect()
+  dbConnected = false
 }

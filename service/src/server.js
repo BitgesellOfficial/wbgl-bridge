@@ -8,8 +8,9 @@ server.listen(parseInt(port), () => {
   console.log(`listening on *:${port}`)
 })
 
-process.on('uncaughtException', error => {
+process.on('uncaughtException', async error => {
   console.log('UNCAUGHT EXCEPTION:', error)
+  await Db.close()
   process.exit(1)
 })
 
