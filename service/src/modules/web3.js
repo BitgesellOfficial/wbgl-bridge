@@ -78,8 +78,9 @@ class Web3Base {
   sendWBGL(address, amount) {
     return new Promise(async (resolve, reject) => {
       const nonce = await Data.get(this.nonceDataName, async () => await this.getTransactionCount())
-      const data = this.WBGL.methods['transfer'](address, toBaseUnit(amount, this.decimals)).encodeABI()
+      await Data.set(this.nonceDataName, nonce + 1)
 
+      const data = this.WBGL.methods['transfer'](address, toBaseUnit(amount, this.decimals)).encodeABI()
       const rawTx = {
         nonce: this.web3.utils.toHex(nonce),
         gasPrice: this.web3.utils.toHex(this.web3.utils.toWei(Math.ceil(1.25 * parseFloat(await this.getGasPrice())).toString(), 'Gwei')),
@@ -100,8 +101,6 @@ class Web3Base {
         .on('transactionHash', resolve)
         .on('error', reject)
         .catch(reject)
-
-      await Data.set(this.nonceDataName, nonce + 1)
     })
   }
 
