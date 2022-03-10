@@ -5,19 +5,7 @@ import {Data} from '../modules/index.js'
 import {toBaseUnit} from '../utils/index.js'
 
 const bn = Web3.utils.toBN
-const createWebsocketProvider = endpoint => {
-  return new Web3.providers.WebsocketProvider(endpoint, {
-    clientConfig: {
-      keepalive: true,
-      keepaliveInterval: 60000,
-    },
-    reconnect: {
-      auto: true,
-      delay: 2500,
-      onTimeout: true,
-    },
-  })
-}
+const createProvider = endpoint => new Web3.providers.HttpProvider(endpoint)
 
 class Web3Base {
   decimals = 18
@@ -30,7 +18,7 @@ class Web3Base {
     this.nonceDataName = nonceDataName
     this.confirmations = confirmations
 
-    this.web3 = new Web3(createWebsocketProvider(endpoint))
+    this.web3 = new Web3(createProvider(endpoint))
     this.WBGL = new this.web3.eth.Contract(JSON.parse(fs.readFileSync('abi/WBGL.json', 'utf8')), contractAddress)
     this.WBGL.methods['decimals']().call().then(decimals => this.decimals = decimals)
 

@@ -13,6 +13,7 @@ const schema = new mongoose.Schema({
   receipt: Object,
   returnTxid: String,
   status: {type: String, default: 'pending'},
+  txChecks: Number,
 }, {timestamps: true})
 
 export default mongoose.model('Conversion', schema)

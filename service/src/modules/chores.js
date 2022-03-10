@@ -92,13 +92,18 @@ async function checkBglTransactions() {
   setTimeout(checkBglTransactions, 60000)
 }
 
-async function subscribeToTokenTransfers(Chain = Eth, prefix = 'Eth') {
-  const blockNumber = await Data.get(`last${prefix}BlockNumber`, async () => await Chain.web3.eth.getBlockNumber() - 1000)
-  Chain.WBGL.events.Transfer({
+async function checkWbglTransfers(Chain = Eth, prefix = 'Eth') {
+  const currentBlock = await Chain.web3.eth.getBlockNumber()
+  const blockNumber = Math.max(await Data.get(`last${prefix}BlockNumber`, currentBlock - 2000), currentBlock - 2000)
+  const events = await Chain.WBGL.getPastEvents('Transfer', {
     fromBlock: blockNumber + 1,
+    toBlock: currentBlock,
     filter: {to: Chain.custodialAccountAddress},
-  }).on('data', async event => {
+  })
+
+  events.forEach(event => {
     const fromQuery = {$regex: new RegExp(`^${event.returnValues.from}$`, 'i')}
+
     Transfer.findOne({type: 'wbgl', chain: Chain.id, from: fromQuery, updatedAt: {$gte: expireDate()}}).exec().then(async transfer => {
       if (transfer && ! await Transaction.findOne({chain: Chain.id, id: event.transactionHash}).exec()) {
         const amount = Chain.convertWGBLBalance(event.returnValues.value)
@@ -142,9 +147,11 @@ async function subscribeToTokenTransfers(Chain = Eth, prefix = 'Eth') {
         }
       }
     })
-    await Data.set(`last${prefix}BlockHash`, event.blockHash)
-    await Data.set(`last${prefix}BlockNumber`, event.blockNumber)
+    Data.set(`last${prefix}BlockHash`, event.blockHash)
+    Data.set(`last${prefix}BlockNumber`, event.blockNumber)
   })
+
+  setTimeout(() => checkWbglTransfers(Chain, prefix), 60000)
 }
 
 async function checkPendingConversions(Chain) {
@@ -152,19 +159,26 @@ async function checkPendingConversions(Chain) {
   let blockNumber
   for (const conversion of conversions) {
     const receipt = await Chain.getTransactionReceipt(conversion.txid)
-    if (receipt && (blockNumber || await Chain.web3.eth.getBlockNumber()) - receipt.blockNumber >= Chain.confirmations) {
+
+    blockNumber = blockNumber || await Chain.web3.eth.getBlockNumber()
+
+    if (receipt && blockNumber - receipt.blockNumber >= Chain.confirmations) {
       conversion.status = 'sent'
       conversion.receipt = receipt
       conversion.markModified('receipt')
-      await conversion.save()
+    } else {
+      conversion.txChecks = (conversion.txChecks || 0) + 1
     }
+
+    await conversion.save()
   }
+
   setTimeout(() => checkPendingConversions(Chain), 60000)
 }
 
 export const init = async () => {
-  await subscribeToTokenTransfers(Eth, 'Eth')
-  await subscribeToTokenTransfers(Bsc, 'Bsc')
+  await checkWbglTransfers(Eth, 'Eth')
+  await checkWbglTransfers(Bsc, 'Bsc')
 
   await checkBglTransactions()
 

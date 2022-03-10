@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React from 'react'
 import {Box, Container, makeStyles, Typography} from '@material-ui/core'
 import {grey} from '@material-ui/core/colors'
 import useSWR from 'swr'
