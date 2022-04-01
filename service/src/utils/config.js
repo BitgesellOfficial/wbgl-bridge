@@ -4,7 +4,7 @@ export const port = process.env.PORT || '8080'
 
 const rpcConfig = {
   host: process.env.RPC_HOST || 'localhost',
-  port: process.env.RPC_PORT || '3445',
+  port: process.env.RPC_PORT || '8332',
 }
 if (process.env.hasOwnProperty('RPC_USER') && process.env.RPC_USER) {
   rpcConfig.username = process.env.RPC_USER

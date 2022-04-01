@@ -6,7 +6,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "nodemon -L --inspect=0.0.0.0:9229 src/server.js"
+    "dev": "nodemon -L --inspect=0.0.0.0:9229 src/server.js",
+    "test": "mocha src/tests/**/*.js -r dotenv/config"
   },
   "dependencies": {
     "bitcoin-core": "^3.0.0",
@@ -18,6 +19,7 @@
     "web3": "^1.3.6"
   },
   "devDependencies": {
+    "mocha": "^9.2.2",
     "nodemon": "^2.0.7"
   }
 }
