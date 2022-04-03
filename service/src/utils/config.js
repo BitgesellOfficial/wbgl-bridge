@@ -4,13 +4,16 @@ export const port = process.env.PORT || "8080";
 
 const rpcConfig = {
   host: process.env.RPC_HOST || "localhost",
-  port: process.env.RPC_PORT || "8332"
+  port: process.env.RPC_PORT || "8332",
 };
 if (process.env.hasOwnProperty("RPC_USER") && process.env.RPC_USER) {
   rpcConfig.username = process.env.RPC_USER;
 }
 if (process.env.hasOwnProperty("RPC_PASSWORD") && process.env.RPC_PASSWORD) {
   rpcConfig.password = process.env.RPC_PASSWORD;
+}
+if (process.env.hasOwnProperty("RPC_WALLET") && process.env.RPC_WALLET) {
+  rpcConfig.wallet = process.env.RPC_WALLET;
 }
 export const rpc = rpcConfig;
 
