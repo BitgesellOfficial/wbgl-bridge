@@ -23,7 +23,6 @@ export const validateAddress = async (address) =>
 
 export const createAddress = async () =>
   await getClient().command("getnewaddress");
-//export const createAddress = async () => await getClient().getNewAddress('joost');;
 
 export const tips = async () => await getClient().getChainTips();
 export const generate = async (tip) => await getClient().generate(tip);

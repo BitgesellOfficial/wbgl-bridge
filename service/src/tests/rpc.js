@@ -28,7 +28,7 @@ describe("REST", () => {
       assert.ok(info);
     });
   });
-  describe("#getBlockCount", () => {
+  describe("getBlockCount()", () => {
     it("Is block count valid", async () => {
       let block = await getBlockCount();
       assert.ok(block);
@@ -37,36 +37,30 @@ describe("REST", () => {
   describe("createAddress()", () => {
     it("should create new address", async () => {
       let address = await createAddress();
-      console.log(address);
-      let result = validateAddress(address);
-      assert.ok(result);
+      assert.ok(validateAddress(address));
     });
   });
-  /*describe('#listSinceBlock', function () {
-    it('list blocks', function () {
-        let blockHash = "000000000000028f3c217bfe1c873d8c2d9de6104f5add4299d43dd127564135";
-        listSinceBlock(blockHash, 3).then(function(resolved){
-            console.log(resolved);
-            assert.equal(true, true);
-        }).catch(function(rejected){
-            console.log("error ", rejected);
-            assert.equal(true, true);
-        })
-     })
-    });*/
-  describe("#getTransactionFromAddress", function () {
-    it("Get address from txid", function () {
+  describe("getBalance()", () => {
+    it("should get wallet balance", async () => {
+      let amount = await getBalance();
+      assert.ok(amount >= 0);
+    });
+  });
+  describe("listSinceBlock()", () => {
+    it("list blocks", async () => {
+      let blockHash =
+        "000000000000028f3c217bfe1c873d8c2d9de6104f5add4299d43dd127564135";
+      let result = await listSinceBlock(blockHash);
+      assert.ok(result.lastblock);
+    });
+  });
+  describe("#getTransactionFromAddress", () => {
+    it("Get address from txid", async () => {
       let txid =
         "6e8027d688ec2bcc4dcf137475ee5611ad306f7a64b38f0a28a0fffe98fce8aa";
-      getTransactionFromAddress(txid)
-        .then(function (resolved) {
-          let result = validateAddress(resolved);
-          assert.ok(result);
-        })
-        .catch(function (rejected) {
-          console.log("error ", rejected);
-          assert.equal(true, true);
-        });
+      let address = await getTransactionFromAddress(txid);
+      assert.equal(validateAddress(address), true);
+      assert.ok(address);
     });
   });
 });

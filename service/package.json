@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon -L --inspect=0.0.0.0:9229 src/server.js",
-    "test": "mocha src/tests/**/*.js -r dotenv/config",
+    "test": "mocha src/tests/**/*.js -r dotenv/config --timeout 10000",
     "lint:check": "eslint .",
     "lint:fix": "eslint --fix",
     "prettier:check": "prettier --check .",
