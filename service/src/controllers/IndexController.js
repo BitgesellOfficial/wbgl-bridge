@@ -1,28 +1,34 @@
-import {Db, RPC, Eth, Bsc} from '../modules/index.js'
+import { Db, RPC, Eth, Bsc } from "../modules/index.js";
 
 export const healthCheck = async (_req, res) => {
   try {
-    await RPC.getBalance()
+    await RPC.getBalance();
     if (!Db.isConnected()) {
-      res.json(500, {status: 'error', message: 'Database connection not available'})
+      res.json(500, {
+        status: "error",
+        message: "Database connection not available",
+      });
     }
     res.json({
-      status: 'ok',
-    })
+      status: "ok",
+    });
   } catch (e) {
-    console.log(e)
-    res.status(500).json({status: 'error', message: 'RPC not available'})
+    console.log(e);
+    res.status(500).json({ status: "error", message: "RPC not available" });
   }
-}
+};
 
 export const state = async (_req, res) => {
   try {
-    const blockchainInfo = await RPC.getBlockchainInfo()
+    const blockchainInfo = await RPC.getBlockchainInfo();
     if (!Db.isConnected()) {
-      res.json(500, {status: 'error', message: 'Database connection not available'})
+      res.json(500, {
+        status: "error",
+        message: "Database connection not available",
+      });
     }
     res.json({
-      status: 'ok',
+      status: "ok",
       BGL: {
         blockchainInfo,
         blockCount: await RPC.getBlockCount(),
@@ -40,9 +46,9 @@ export const state = async (_req, res) => {
         wbglBalance: await Bsc.getWBGLBalance(),
         transactionCount: await Bsc.getTransactionCount(),
       },
-    })
+    });
   } catch (e) {
-    console.log(e)
-    res.status(500).json({status: 'error', message: 'RPC not available'})
+    console.log(e);
+    res.status(500).json({ status: "error", message: "RPC not available" });
   }
-}
+};

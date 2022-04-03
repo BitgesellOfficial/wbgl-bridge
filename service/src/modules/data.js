@@ -1,10 +1,14 @@
-import Data from '../models/Data.js'
+import Data from "../models/Data.js";
 
 export async function get(name, defaultValue = null) {
-  const record = await Data.findOne({name}).exec()
-  return record ? record['value'] : (defaultValue instanceof Function ? await defaultValue() : defaultValue)
+  const record = await Data.findOne({ name }).exec();
+  return record
+    ? record["value"]
+    : defaultValue instanceof Function
+    ? await defaultValue()
+    : defaultValue;
 }
 
 export async function set(name, value) {
-  await Data.updateOne({name}, {value}, {upsert: true})
+  await Data.updateOne({ name }, { value }, { upsert: true });
 }
