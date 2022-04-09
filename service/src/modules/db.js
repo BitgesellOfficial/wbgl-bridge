@@ -13,6 +13,7 @@ export const init = async () => {
     });
   } catch (error) {
     setTimeout(() => {
+      console.log("DB failed to start");
       init();
     }, 10000);
     return (dbConnected = false);

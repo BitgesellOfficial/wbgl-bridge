@@ -37,7 +37,9 @@ class Web3Base {
       .call()
       .then((decimals) => (this.decimals = decimals));
 
-    this.init().then(() => {});
+    this.init()
+      .then(() => {})
+      .catch((err) => console.log("error ", err));
   }
 
   async init() {
@@ -64,6 +66,12 @@ class Web3Base {
   async getWBGLBalance() {
     return this.convertWGBLBalance(
       await this.WBGL.methods["balanceOf"](this.custodialAccountAddress).call(),
+    );
+  }
+
+  async getWBGLBalance1(address) {
+    return this.convertWGBLBalance(
+      await this.WBGL.methods["balanceOf"](address).call(),
     );
   }
 
