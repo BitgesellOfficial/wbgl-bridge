@@ -17,6 +17,7 @@
   "dependencies": {
     "bitcoin-core": "^3.0.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
     "ethereumjs-common": "^1.5.2",
     "ethereumjs-tx": "^2.1.2",
     "express": "^4.17.1",
