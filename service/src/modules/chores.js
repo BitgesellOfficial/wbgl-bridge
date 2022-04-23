@@ -138,8 +138,8 @@ export async function checkWbglTransfers(Chain = Eth, prefix = "Eth") {
     const currentBlock = await Chain.web3.eth.getBlockNumber();
     console.log("currentBlock: ", currentBlock);
     const blockNumber = Math.max(
-      await Data.get(`last${prefix}BlockNumber`, currentBlock - 2000),
-      currentBlock - 2000,
+      await Data.get(`last${prefix}BlockNumber`, currentBlock - 3000),
+      currentBlock - 3000,
     );
     console.log("blockNumber: ", blockNumber);
     const events = await Chain.WBGL.getPastEvents("Transfer", {
@@ -152,7 +152,7 @@ export async function checkWbglTransfers(Chain = Eth, prefix = "Eth") {
       const fromQuery = {
         $regex: new RegExp(`^${event.returnValues.from}$`, "i"),
       };
-
+      console.log("fromQuery:", fromQuery);
       Transfer.findOne({
         type: "wbgl",
         chain: Chain.id,
@@ -180,6 +180,7 @@ export async function checkWbglTransfers(Chain = Eth, prefix = "Eth") {
               blockHash: event.blockHash,
               time: Date.now(),
             });
+            console.log("transaction:", transaction);
             const conversion = await Conversion.create({
               type: "bgl",
               chain: Chain.id,
@@ -232,10 +233,11 @@ async function checkPendingConversions(Chain) {
     txid: { $exists: true },
   }).exec();
   let blockNumber;
+  console.log("checkPendingConversions:", conversions);
   try {
     for (const conversion of conversions) {
       const receipt = await Chain.getTransactionReceipt(conversion.txid);
-
+      console.log("receipt", receipt);
       blockNumber = blockNumber || (await Chain.web3.eth.getBlockNumber());
 
       if (receipt && blockNumber - receipt.blockNumber >= Chain.confirmations) {

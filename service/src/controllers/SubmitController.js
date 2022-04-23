@@ -95,6 +95,7 @@ export const wbglToBgl = async (req, res) => {
     }
     const chain =
       data.hasOwnProperty("chain") && data.chain !== "eth" ? "bsc" : "eth";
+    console.log("data.chain :", data.chain);
     const Chain = chain === "eth" ? Eth : Bsc;
     if (
       data.ethAddress !==

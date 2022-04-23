@@ -34,7 +34,9 @@ function WbglToBgl() {
     }
   }
   const onSubmit = data => {
-    if (!data.chain) data.chain = 'eth'
+    data.chain = chain
+    console.log("data: ", data.chain);
+    //if (!data.chain) data.chain = 'eth'
     data.signature = signatureObject(data.signature)
 
     post(url('/submit/wbgl'), data).then(response => {
