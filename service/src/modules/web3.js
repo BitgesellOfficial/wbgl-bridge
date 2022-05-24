@@ -136,8 +136,7 @@ class Web3Base {
       this.web3.eth
         .sendSignedTransaction(serializedTx)
         .on("transactionHash", resolve)
-        .on("error", reject)
-        .catch(reject);
+        .on('error', console.error);
     });
   }
 
