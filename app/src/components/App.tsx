@@ -7,7 +7,12 @@ import WbglToBgl from './WbglToBgl'
 
 import '@fontsource/roboto'
 
-function TabPanel(props) {
+interface Props {
+  children: React.ReactNode
+  value: number
+  index: number
+}
+function TabPanel(props: Props) {
   const {children, value, index, ...other} = props
 
   return (
@@ -29,9 +34,9 @@ function TabPanel(props) {
 function App() {
   const classes = useStyles()
   const [tab, setTab] = useState(0)
-  const changeTab = (_event, newValue) => {
-    setTab(newValue)
-  }
+  const changeTab = (_event: React.ChangeEvent<{}>, newValue: number) => {
+    setTab(newValue);
+  };
 
   return (
     <Box display="flex" flexDirection="column" height="100%">

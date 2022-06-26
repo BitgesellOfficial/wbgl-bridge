@@ -7,7 +7,8 @@ import {fetcher, url} from '../utils'
 const textColor = grey[700]
 const bgColor = grey[300]
 
-function useBalance(id) {
+type Chain = 'bgl' | 'eth' | 'bsc'
+function useBalance(id: Chain) {
   const {data, error} = useSWR(url(`/balance/${id}`), fetcher, {refreshInterval: 60000})
   return {
     balance: data,
@@ -21,7 +22,7 @@ function Footer() {
   const {balance: ethBalance, isLoading: ethLoading} = useBalance('eth')
   const {balance: bscBalance, isLoading: bscLoading} = useBalance('bsc')
   const classes = useStyles()
-  const balanceClass = isLoading => isLoading ? classes.pulsing : undefined
+  const balanceClass = (isLoading: boolean) => isLoading ? classes.pulsing : undefined
 
   return (
     <Box p={2} color={textColor} bgcolor={bgColor}>

@@ -3,22 +3,29 @@ import {useForm} from 'react-hook-form'
 import {Box, Button, FormControlLabel, FormLabel, Radio, RadioGroup, TextField, Typography} from '@material-ui/core'
 import {chainLabel, post, url} from '../utils'
 
+interface FormValues {
+  chain: 'eth' | 'bsc'
+  ethAddress: string
+  bglAddress: string
+  signature: string
+}
 function WbglToBgl() {
-  const {register, handleSubmit, getValues, setError, setFocus, formState: {errors}} = useForm()
+  const {register, handleSubmit, getValues, setError, setFocus, formState: {errors}} = useForm<FormValues>()
   const [submitting, setSubmitting] = useState(false)
   const [sendAddress, setSendAddress] = useState('')
   const [balance, setBalance] = useState(0)
   const [feePercentage, setFeePercentage] = useState(0)
   const [chain, setChain] = useState('eth')
-  const onChangeChain = event => setChain(event.target.value)
+  const onChangeChain = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setChain(event.target.value);
 
-  const signatureObject = signature => /^0x[0-9a-f]+$/.test(signature) ? {
+  const signatureObject = (signature: string) => /^0x[0-9a-f]+$/.test(signature) ? {
     address: getValues('ethAddress'),
     msg: getValues('bglAddress'),
     sig: signature,
   } : JSON.parse(signature)
 
-  const validateSignature = value => {
+  const validateSignature = (value: string) => {
     try {
       const signature = signatureObject(value)
       if (typeof signature === 'object' && signature !== null) {
@@ -33,7 +40,7 @@ function WbglToBgl() {
       return false
     }
   }
-  const onSubmit = data => {
+  const onSubmit = (data: FormValues) => {
     if (!data.chain) data.chain = 'eth'
     data.signature = signatureObject(data.signature)
 
@@ -53,7 +60,7 @@ function WbglToBgl() {
   return !sendAddress ? (
     <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
       <FormLabel>Chain:</FormLabel>
-      <RadioGroup defaultValue="eth" name="chain" {...register('chain')} onChange={onChangeChain}>
+      <RadioGroup defaultValue="eth" {...register('chain')} onChange={onChangeChain}>
         <FormControlLabel value="eth" control={<Radio />} label={'Ethereum'} />
         <FormControlLabel value="bsc" control={<Radio />} label={'Binance Smart Chain'} />
       </RadioGroup>
