@@ -1,18 +1,27 @@
 import {useState, Fragment} from 'react'
 import {useForm} from 'react-hook-form'
 import {Box, Button, FormControlLabel, FormLabel, Radio, RadioGroup, TextField, Typography} from '@material-ui/core'
-import {post, url, chainLabel} from '../utils'
+import {post, url, chainLabel, isChain} from '../utils'
+
+interface FormValues {
+  chain: 'eth' | 'bsc'
+  address: string
+}
 
 function BglToWbgl() {
-  const {register, handleSubmit, setError, setFocus, formState: {errors}} = useForm()
+  const {register, handleSubmit, setError, setFocus, formState: {errors}} = useForm<FormValues>()
   const [submitting, setSubmitting] = useState(false)
   const [sendAddress, setSendAddress] = useState(false)
   const [balance, setBalance] = useState(0)
   const [feePercentage, setFeePercentage] = useState(0)
-  const [chain, setChain] = useState('eth')
-  const onChangeChain = event => setChain(event.target.value)
+  const [chain, setChain] = useState<FormValues['chain']>('eth')
+  const onChangeChain = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (isChain(event.target.value)) {
+      setChain(event.target.value)
+    }
+  }
 
-  const onSubmit = data => {
+  const onSubmit = (data: FormValues) => {
     if (!data.chain) data.chain = 'eth'
 
     setSubmitting(true)
@@ -32,7 +41,7 @@ function BglToWbgl() {
   return !sendAddress ? (
     <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
       <FormLabel>Chain:</FormLabel>
-      <RadioGroup defaultValue="eth" name="chain" {...register('chain')} onChange={onChangeChain}>
+      <RadioGroup defaultValue="eth" {...register('chain')} onChange={onChangeChain}>
         <FormControlLabel value="eth" control={<Radio />} label={'Ethereum'} />
         <FormControlLabel value="bsc" control={<Radio />} label={'Binance Smart Chain'} />
       </RadioGroup>
