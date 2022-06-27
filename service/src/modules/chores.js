@@ -1,8 +1,24 @@
-import { confirmations, feePercentage, bsc } from "../utils/config.js";
+import { confirmations, feePercentage, bsc, nonces } from "../utils/config.js";
 import { Data, RPC, Eth, Bsc } from "./index.js";
 import Transaction from "../models/Transaction.js";
 import Transfer from "../models/Transfer.js";
 import Conversion from "../models/Conversion.js";
+
+let ethNonce = 0;
+let bscNonce = 0;
+
+function setupNonce(){
+  if ((ethNonce == 0) && (nonces.eth == 0)) {
+    ethNonce = Eth.getTransactionCount();
+  } else if ((nonces.eth > 0) && (nonces.eth > ethNonce)) {
+    ethNonce = nonces.eth;
+  }
+  if ((bscNonce == 0) && (nonces.bsc == 0)) {
+    bscNonce = Bsc.getTransactionCount();
+  } else if ((nonces.bsc > 0) && (nonces.bsc > bscNonce)) {
+    bscNonce = nonces.bsc;
+  }
+}
 
 const expireDate = () => {
   const expireDate = new Date();
@@ -55,7 +71,7 @@ async function checkBglTransactions() {
       blockHash || undefined,
       confirmations.bgl,
     );
-
+    setupNonce();
     result.transactions
       .filter(
         (tx) =>
@@ -106,10 +122,22 @@ async function checkBglTransactions() {
               }
 
               try {
-                conversion.txid = await Chain.sendWBGL(
-                  transfer.to,
-                  amount.toString(),
-                );
+                const AssignedNonce = transfer.chain === "bsc" ? Bsc : Eth;
+                if (transfer.chain === "bsc") {
+                  bscNonce += 1;
+                  conversion.txid = await Chain.sendWBGL(
+                    transfer.to,
+                    amount.toString(),
+                    bscNonce
+                  );
+                } else {
+                  ethNonce += 1;
+                  conversion.txid = await Chain.sendWBGL(
+                    transfer.to,
+                    amount.toString(),
+                    ethNonce
+                  );
+                }
                 await conversion.save();
               } catch (e) {
                 console.log(
@@ -138,8 +166,8 @@ export async function checkWbglTransfers(Chain = Eth, prefix = "Eth") {
     const currentBlock = await Chain.web3.eth.getBlockNumber();
     console.log("currentBlock: ", currentBlock);
     const blockNumber = Math.max(
-      await Data.get(`last${prefix}BlockNumber`, currentBlock - 3000),
-      currentBlock - 3000,
+      await Data.get(`last${prefix}BlockNumber`, currentBlock - 2000),
+      currentBlock - 2000,
     );
     console.log("blockNumber: ", blockNumber);
     const events = await Chain.WBGL.getPastEvents("Transfer", {

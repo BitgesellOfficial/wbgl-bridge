@@ -46,3 +46,8 @@ export const confirmations = {
 };
 
 export const feePercentage = process.env.FEE_PERCENTAGE || 1;
+
+export const nonces = {
+  bsc: parseInt(process.env.BSC_NONCE) || 0,
+  eth: parseInt(process.env.ETH__NONCE) || 0,
+};

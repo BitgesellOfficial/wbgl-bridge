@@ -90,7 +90,7 @@ class Web3Base {
   async getTransactionCount() {
     return await this.web3.eth.getTransactionCount(
       this.custodialAccountAddress,
-      "pending",
+      "latest",
     );
   }
 
@@ -98,14 +98,8 @@ class Web3Base {
     return await this.web3.eth.getTransactionReceipt(txid);
   }
 
-  sendWBGL(address, amount) {
+  sendWBGL(address, amount, nonce) {
     return new Promise(async (resolve, reject) => {
-      const nonce = await Data.get(
-        this.nonceDataName,
-        async () => await this.getTransactionCount(),
-      );
-      await Data.set(this.nonceDataName, nonce + 1);
-
       const data = this.WBGL.methods["transfer"](
         address,
         toBaseUnit(amount, this.decimals),
