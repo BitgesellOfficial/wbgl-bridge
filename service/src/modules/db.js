@@ -1,7 +1,7 @@
-import mongoose from 'mongoose'
-import {mongo} from '../utils/config.js'
+import mongoose from "mongoose";
+import { mongo } from "../utils/config.js";
 
-let dbConnected = false
+let dbConnected = false;
 
 export const init = async () => {
   try {
@@ -10,21 +10,22 @@ export const init = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       useCreateIndex: true,
-    })
+    });
   } catch (error) {
     setTimeout(() => {
-      init()
-    }, 10000)
-    return dbConnected = false
+      console.log("DB failed to start");
+      init();
+    }, 10000);
+    return (dbConnected = false);
   }
-  return dbConnected = true
-}
+  return (dbConnected = true);
+};
 
 export const isConnected = () => {
-  return dbConnected
-}
+  return dbConnected;
+};
 
 export const close = async () => {
-  await mongoose.disconnect()
-  dbConnected = false
-}
+  await mongoose.disconnect();
+  dbConnected = false;
+};

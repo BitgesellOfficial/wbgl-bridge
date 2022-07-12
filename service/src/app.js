@@ -1,21 +1,32 @@
-import express from 'express'
-import cors from 'cors'
-import {port} from './utils/config.js'
-import {BalanceController, IndexController, SubmitController} from './controllers/index.js'
+import express from "express";
+import cors from "cors";
+import { port } from "./utils/config.js";
+import {
+  BalanceController,
+  IndexController,
+  SubmitController,
+} from "./controllers/index.js";
 
-const app = express()
-app.set('port', port)
-app.use(cors())
-app.use(express.json())
+const app = express();
+app.set("port", port);
+app.use(cors());
+app.use(express.json());
 
-app.get('/', IndexController.healthCheck)
-app.get('/state', IndexController.state)
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+  next();
+});
 
-app.get('/balance/bgl', BalanceController.bgl)
-app.get('/balance/eth', BalanceController.eth)
-app.get('/balance/bsc', BalanceController.bsc)
+app.get("/", IndexController.healthCheck);
+app.get("/state", IndexController.state);
 
-app.post('/submit/bgl', SubmitController.bglToWbgl)
-app.post('/submit/wbgl', SubmitController.wbglToBgl)
+app.get("/balance/bgl", BalanceController.bgl);
+app.get("/balance/eth", BalanceController.eth);
+app.get("/balance/bsc", BalanceController.bsc);
 
-export default app
+app.post("/submit/bgl", SubmitController.bglToWbgl);
+app.post("/submit/wbgl", SubmitController.wbglToBgl);
+
+export default app;
