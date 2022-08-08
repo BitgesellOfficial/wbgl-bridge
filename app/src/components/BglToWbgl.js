@@ -2,6 +2,7 @@ import {useState, Fragment} from 'react'
 import {useForm} from 'react-hook-form'
 import {Box, Button, FormControlLabel, FormLabel, Radio, RadioGroup, TextField, Typography} from '@material-ui/core'
 import {post, url, chainLabel} from '../utils'
+import CheckWalletConnection from './CheckWalletConnection'
 
 function BglToWbgl() {
   const {register, handleSubmit, setError, setFocus, formState: {errors}} = useForm()
@@ -30,26 +31,28 @@ function BglToWbgl() {
   }
 
   return !sendAddress ? (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
-      <FormLabel>Chain:</FormLabel>
-      <RadioGroup defaultValue="eth" name="chain" {...register('chain')} onChange={onChangeChain}>
-        <FormControlLabel value="eth" control={<Radio />} label={'Ethereum'} />
-        <FormControlLabel value="bsc" control={<Radio />} label={'Binance Smart Chain'} />
-      </RadioGroup>
-      <TextField
-        variant="filled"
-        margin="normal"
-        label={`${chainLabel(chain)} Address`}
-        fullWidth
-        required
-        helperText={errors.address ? `Please enter a valid ${chainLabel(chain)} address.` : `Enter the ${chainLabel(chain)} address to receive WBGL tokens at.`}
-        {...register('address', {required: true, pattern: /^0x[a-fA-F0-9]{40}$/i})}
-        error={!!errors.address}
-      />
-      <Box display="flex" justifyContent="center" m={1}>
-        <Button type="submit" variant="contained" color="primary" size="large" disabled={submitting}>Continue</Button>
-      </Box>
-    </form>
+    <CheckWalletConnection>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
+        <FormLabel>Chain:</FormLabel>
+        <RadioGroup defaultValue="eth" name="chain" {...register('chain')} onChange={onChangeChain}>
+          <FormControlLabel value="eth" control={<Radio />} label={'Ethereum'} />
+          <FormControlLabel value="bsc" control={<Radio />} label={'Binance Smart Chain'} />
+        </RadioGroup>
+        <TextField
+          variant="filled"
+          margin="normal"
+          label={`${chainLabel(chain)} Address`}
+          fullWidth
+          required
+          helperText={errors.address ? `Please enter a valid ${chainLabel(chain)} address.` : `Enter the ${chainLabel(chain)} address to receive WBGL tokens at.`}
+          {...register('address', {required: true, pattern: /^0x[a-fA-F0-9]{40}$/i})}
+          error={!!errors.address}
+        />
+        <Box display="flex" justifyContent="center" m={1}>
+          <Button type="submit" variant="contained" color="primary" size="large" disabled={submitting}>Continue</Button>
+        </Box>
+      </form>
+    </CheckWalletConnection>
   ) : (
     <Fragment>
       <Typography variant="body1" gutterBottom>Send BGL to: <code>{sendAddress}</code></Typography>

@@ -2,6 +2,7 @@ import {Fragment, useState} from 'react'
 import {useForm} from 'react-hook-form'
 import {Box, Button, FormControlLabel, FormLabel, Radio, RadioGroup, TextField, Typography} from '@material-ui/core'
 import {chainLabel, post, url} from '../utils'
+import CheckWalletConnection from './CheckWalletConnection'
 
 function WbglToBgl() {
   const {register, handleSubmit, getValues, setError, setFocus, formState: {errors}} = useForm()
@@ -53,47 +54,49 @@ function WbglToBgl() {
   const signatureHelperText = `Sign your BGL address with your ${chainLabel(chain)} wallet's private key and paste the result here. You can sign your address here: https://app.mycrypto.com/sign-message`
 
   return !sendAddress ? (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
-      <FormLabel>Chain:</FormLabel>
-      <RadioGroup defaultValue="eth" name="chain" {...register('chain')} onChange={onChangeChain}>
-        <FormControlLabel value="eth" control={<Radio />} label={'Ethereum'} />
-        <FormControlLabel value="bsc" control={<Radio />} label={'Binance Smart Chain'} />
-      </RadioGroup>
-      <TextField
-        variant="filled"
-        margin="normal"
-        label={`${chainLabel(chain)} Address`}
-        fullWidth
-        required
-        helperText={errors['ethAddress'] ? `Please enter a valid ${chainLabel(chain)} address.` : `Enter the ${chainLabel(chain)} address you will be sending WBGL tokens from.`}
-        {...register('ethAddress', {required: true, pattern: /^0x[a-fA-F0-9]{40}$/i})}
-        error={!!errors['ethAddress']}
-      />
-      <TextField
-        variant="filled"
-        margin="normal"
-        label="BGL Address"
-        fullWidth
-        required
-        helperText={errors['bglAddress'] ? 'Please enter a valid Bitgesell address.' : 'Enter the BGL address coins will be sent to.'}
-        {...register('bglAddress', {required: true, pattern: /^(bgl1|[135])[a-zA-HJ-NP-Z0-9]{25,39}$/i})}
-        error={!!errors['bglAddress']}
-      />
-      <TextField
-        variant="filled"
-        margin="normal"
-        label="Signed BGL address"
-        fullWidth
-        required
-        multiline
-        helperText={signatureHelperText + (errors['signature'] ? ' Please enter a valid signature.' : '')}
-        {...register('signature', {required: true, validate: validateSignature})}
-        error={!!errors['signature']}
-      />
-      <Box display="flex" justifyContent="center" m={1}>
-        <Button type="submit" variant="contained" color="primary" size="large" disabled={submitting}>Continue</Button>
-      </Box>
-    </form>
+    <CheckWalletConnection>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
+        <FormLabel>Chain:</FormLabel>
+        <RadioGroup defaultValue="eth" name="chain" {...register('chain')} onChange={onChangeChain}>
+          <FormControlLabel value="eth" control={<Radio />} label={'Ethereum'} />
+          <FormControlLabel value="bsc" control={<Radio />} label={'Binance Smart Chain'} />
+        </RadioGroup>
+        <TextField
+          variant="filled"
+          margin="normal"
+          label={`${chainLabel(chain)} Address`}
+          fullWidth
+          required
+          helperText={errors['ethAddress'] ? `Please enter a valid ${chainLabel(chain)} address.` : `Enter the ${chainLabel(chain)} address you will be sending WBGL tokens from.`}
+          {...register('ethAddress', {required: true, pattern: /^0x[a-fA-F0-9]{40}$/i})}
+          error={!!errors['ethAddress']}
+        />
+        <TextField
+          variant="filled"
+          margin="normal"
+          label="BGL Address"
+          fullWidth
+          required
+          helperText={errors['bglAddress'] ? 'Please enter a valid Bitgesell address.' : 'Enter the BGL address coins will be sent to.'}
+          {...register('bglAddress', {required: true, pattern: /^(bgl1|[135])[a-zA-HJ-NP-Z0-9]{25,39}$/i})}
+          error={!!errors['bglAddress']}
+        />
+        <TextField
+          variant="filled"
+          margin="normal"
+          label="Signed BGL address"
+          fullWidth
+          required
+          multiline
+          helperText={signatureHelperText + (errors['signature'] ? ' Please enter a valid signature.' : '')}
+          {...register('signature', {required: true, validate: validateSignature})}
+          error={!!errors['signature']}
+        />
+        <Box display="flex" justifyContent="center" m={1}>
+          <Button type="submit" variant="contained" color="primary" size="large" disabled={submitting}>Continue</Button>
+        </Box>
+      </form>
+    </CheckWalletConnection>
   ) : (
     <Fragment>
       <Typography variant="body1" gutterBottom>Send WBGL tokens to: <code>{sendAddress}</code></Typography>
