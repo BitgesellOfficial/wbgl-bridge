@@ -77,37 +77,9 @@ export const wbglToBgl = async (req, res) => {
       });
       return;
     }
-    if (
-      !data.hasOwnProperty("signature") ||
-      typeof data.signature !== "object" ||
-      !data.signature.hasOwnProperty("address") ||
-      !data.signature.hasOwnProperty("msg") ||
-      !data.signature.hasOwnProperty("sig") ||
-      data.signature.address !== data.ethAddress ||
-      data.signature.msg !== data.bglAddress
-    ) {
-      res.status(400).json({
-        status: "error",
-        field: "signature",
-        message: "No signature or malformed signature provided.",
-      });
-      return;
-    }
     const chain =
       data.hasOwnProperty("chain") && data.chain !== "eth" ? "bsc" : "eth";
     console.log("data.chain :", data.chain);
-    const Chain = chain === "eth" ? Eth : Bsc;
-    if (
-      data.ethAddress !==
-      Chain.web3.eth.accounts.recover(data.bglAddress, data.signature.sig)
-    ) {
-      res.status(400).json({
-        status: "error",
-        field: "signature",
-        message: "Signature does not match the address provided.",
-      });
-      return;
-    }
 
     let transfer = await Transfer.findOne({
       type: "wbgl",

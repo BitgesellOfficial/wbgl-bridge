@@ -5,7 +5,6 @@ import {isTest} from '../utils/config'
 
 function CheckWalletConnection({children}) {
   const {status, chainId} = useMetaMask()
-console.log(chainId)
   if (status !== 'connected') {
     return 'Please connect wallet.'
   } else if (!isChainValid(chainId)) {
