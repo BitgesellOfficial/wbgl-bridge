@@ -96,16 +96,14 @@ function WbglToBgl() {
   }
 
   return (
-    <Fragment>
+    <CheckWalletConnection>
       <List>
         <ListItemText primary="Chain:" secondary={chainLabel(chainId)}/>
         <ListItemText primary={`Source Address:`} secondary={account}/>
         <ListItemText primary="WBGL Balance:" secondary={wbglBalance}/>
       </List>
       {!sendAddress ? (
-        <CheckWalletConnection>
-          <AddressForm/>
-        </CheckWalletConnection>
+        <AddressForm/>
       ) : (
         <Fragment>
           <Typography variant="body2" gutterBottom>
@@ -119,7 +117,7 @@ function WbglToBgl() {
         </Fragment>
       )}
 
-    </Fragment>
+    </CheckWalletConnection>
   )
 }
 

@@ -3,7 +3,7 @@ import {useMetaMask} from 'metamask-react'
 import Web3 from 'web3'
 
 import abi from '../assets/abi/WBGL.json'
-import {getTokenAddress} from './index'
+import {getTokenAddress, isChainValid} from './index'
 
 let web3
 let WBGL
@@ -23,20 +23,21 @@ export function useWbglBalance() {
   const fetch = async () => {
     const current = web3.utils.fromWei(await WBGL.methods['balanceOf'](account).call(), 'ether')
     setBalance(current)
-    console.log(current)
   }
 
   useEffect(() => {
-    getTokenAddress(chainId).then(async contractAddress => {
-      const web3 = getWeb3(ethereum)
-      WBGL = new web3.eth.Contract(abi, contractAddress)
+    if (isChainValid(chainId)) {
+      getTokenAddress(chainId).then(async contractAddress => {
+        const web3 = getWeb3(ethereum)
+        WBGL = new web3.eth.Contract(abi, contractAddress)
 
-      await fetch()
+        await fetch()
 
-      interval = setInterval(fetch, 30000)
-    })
+        interval = setInterval(fetch, 30000)
+      })
 
-    return () => clearInterval(interval)
+      return () => clearInterval(interval)
+    }
   }, [])
 
   return balance
