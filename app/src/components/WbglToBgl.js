@@ -24,11 +24,23 @@ function WbglToBgl() {
   const AddressForm = () => {
     const {register, handleSubmit, setError, setFocus, formState: {errors}} = useForm()
 
-    const onSubmit = data => {
+    const onSubmit = async data => {
+      setSubmitting(true)
+
       data.chain = chain
       data.ethAddress = account
-
-      setSubmitting(true)
+      try {
+        data.signature = await ethereum.request({
+          method: 'personal_sign',
+          params: [
+            data.bglAddress,
+            account,
+          ],
+        })
+      } catch (e) {
+        setSubmitting(false)
+        return
+      }
 
       post(url('/submit/wbgl'), data).then(response => {
         setSendAddress(response.address)
