@@ -10,10 +10,11 @@ services:
       - service
     environment:
       - NODE_ENV=development
+      - NODE_OPTIONS=--openssl-legacy-provider
       - CHOKIDAR_USEPOLLING=true
-      - REACT_APP_SERVICE_URL=localhost:8480
-      - REACT_APP_TITLE=Bitgesell-WBGL Bridge
       - SSL=false
+      - REACT_APP_SERVICE_URL=http://localhost:8480
+      - REACT_APP_TITLE=Bitgesell-WBGL Bridge
     tty: true
     ports:
       - "8406:19006"
