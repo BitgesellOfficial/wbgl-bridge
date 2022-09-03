@@ -51,3 +51,7 @@ export const nonces = {
   bsc: parseInt(process.env.BSC_NONCE) || 0,
   eth: parseInt(process.env.ETH__NONCE) || 0,
 };
+
+export const reCAPTCHA = {
+  siteKey: process.env.RECAPTCHA_SITE_KEY,
+}
