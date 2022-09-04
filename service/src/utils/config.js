@@ -53,5 +53,5 @@ export const nonces = {
 };
 
 export const reCAPTCHA = {
-  siteKey: process.env.RECAPTCHA_SITE_KEY,
+  siteKey: process.env.RECAPTCHA_SECRET_KEY,
 }
