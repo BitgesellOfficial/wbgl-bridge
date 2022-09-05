@@ -2,6 +2,7 @@ import Transfer from "../models/Transfer.js";
 import { RPC, Eth, Bsc } from "../modules/index.js";
 import { bsc, eth, feePercentage } from "../utils/config.js";
 import { isValidBglAddress, isValidEthAddress, sha3 } from "../utils/index.js";
+import {validateCaptchaToken} from '../utils/reCAPTCHA.js';
 
 export const bglToWbgl = async (req, res) => {
   const data = req.body;
@@ -13,6 +14,27 @@ export const bglToWbgl = async (req, res) => {
     });
     return;
   }
+
+  if(!data.hasOwnProperty("captchaToken")) {
+    res.status(400).json({
+      status: "error",
+      field: "captchaToken",
+      message: "No captchaToken provided",
+    });
+    return;
+  }
+
+  const isCaptchaValid = await validateCaptchaToken(req.body.captchaToken)
+
+  if(!isCaptchaValid) {
+    res.status(400).json({
+      status: "error",
+      field: "captchaToken",
+      message: "Invalid captcha",
+    });
+    return;
+  }
+
   const chain =
     data.hasOwnProperty("chain") && data.chain !== "eth" ? "bsc" : "eth";
   const Chain = chain === "eth" ? Eth : Bsc;
@@ -65,6 +87,27 @@ export const wbglToBgl = async (req, res) => {
     });
     return;
   }
+
+  if(!data.hasOwnProperty("captchaToken")) {
+    res.status(400).json({
+      status: "error",
+      field: "captchaToken",
+      message: "No captchaToken provided",
+    });
+    return;
+  }
+
+  const isCaptchaValid = await validateCaptchaToken(req.body.captchaToken)
+
+  if(!isCaptchaValid) {
+    res.status(400).json({
+      status: "error",
+      field: "captchaToken",
+      message: "Invalid captcha",
+    });
+    return;
+  }
+
   try {
     if (
       !data.hasOwnProperty("bglAddress") ||
