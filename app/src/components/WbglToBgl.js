@@ -1,16 +1,26 @@
-import {Fragment, useState} from 'react'
-import {useForm} from 'react-hook-form'
-import {Box, Button, FormControlLabel, FormLabel, Radio, RadioGroup, TextField, Typography} from '@material-ui/core'
-import {chainLabel, post, url} from '../utils'
+import { Fragment, useState, useEffect, createRef } from 'react'
+import { useForm } from 'react-hook-form'
+import { Box, Button, FormControlLabel, FormLabel, Radio, RadioGroup, TextField, Typography } from '@material-ui/core'
+import ReCAPTCHA from 'react-google-recaptcha'
+import { chainLabel, post, url } from '../utils'
 
 function WbglToBgl() {
-  const {register, handleSubmit, getValues, setError, setFocus, formState: {errors}} = useForm()
+  const { register, handleSubmit, getValues, setError, setFocus, formState: { errors } } = useForm()
   const [submitting, setSubmitting] = useState(false)
   const [sendAddress, setSendAddress] = useState('')
   const [balance, setBalance] = useState(0)
   const [feePercentage, setFeePercentage] = useState(0)
   const [chain, setChain] = useState('eth')
+  const [captchaToken, setCaptchaToken] = useState(null)
   const onChangeChain = event => setChain(event.target.value)
+  const recaptchaRef = createRef();
+
+  useEffect(() => {
+    recaptchaRef.current?.execute();
+    return () => {
+      recaptchaRef.current?.reset()
+    }
+  }, [captchaToken, recaptchaRef])
 
   const signatureObject = signature => /^0x[0-9a-f]+$/.test(signature) ? {
     address: getValues('ethAddress'),
@@ -33,22 +43,34 @@ function WbglToBgl() {
       return false
     }
   }
+
+  const handleRecaptchaChange = (token) => {
+    if (!token) return;
+    else setCaptchaToken(token);
+  }
+
   const onSubmit = data => {
     data.chain = chain
     console.log("data: ", data.chain);
     //if (!data.chain) data.chain = 'eth'
     data.signature = signatureObject(data.signature)
+    const _data = { ...data, captchaToken }
 
-    post(url('/submit/wbgl'), data).then(response => {
+    post(url('/submit/wbgl'), _data).then(response => {
       setSendAddress(response.address)
       setBalance(Math.floor(response.balance))
       setFeePercentage(response.feePercentage)
+      recaptchaRef.current?.reset()
     }).catch(result => {
       if (result.hasOwnProperty('field')) {
-        setError(result.field, {type: 'manual', message: result.message})
+        setError(result.field, { type: 'manual', message: result.message })
         setFocus(result.field)
+        recaptchaRef.current?.reset()
       }
-    }).finally(() => setSubmitting(false))
+    }).finally(() => {
+      setSubmitting(false)
+      recaptchaRef.current?.reset()
+    })
   }
   const signatureHelperText = `Sign your BGL address with your ${chainLabel(chain)} wallet's private key and paste the result here. You can sign your address here: https://app.mycrypto.com/sign-message`
 
@@ -66,7 +88,7 @@ function WbglToBgl() {
         fullWidth
         required
         helperText={errors['ethAddress'] ? `Please enter a valid ${chainLabel(chain)} address.` : `Enter the ${chainLabel(chain)} address you will be sending WBGL tokens from.`}
-        {...register('ethAddress', {required: true, pattern: /^0x[a-fA-F0-9]{40}$/i})}
+        {...register('ethAddress', { required: true, pattern: /^0x[a-fA-F0-9]{40}$/i })}
         error={!!errors['ethAddress']}
       />
       <TextField
@@ -76,7 +98,7 @@ function WbglToBgl() {
         fullWidth
         required
         helperText={errors['bglAddress'] ? 'Please enter a valid Bitgesell address.' : 'Enter the BGL address coins will be sent to.'}
-        {...register('bglAddress', {required: true, pattern: /^(bgl1|[135])[a-zA-HJ-NP-Z0-9]{25,39}$/i})}
+        {...register('bglAddress', { required: true, pattern: /^(bgl1|[135])[a-zA-HJ-NP-Z0-9]{25,39}$/i })}
         error={!!errors['bglAddress']}
       />
       <TextField
@@ -87,8 +109,14 @@ function WbglToBgl() {
         required
         multiline
         helperText={signatureHelperText + (errors['signature'] ? ' Please enter a valid signature.' : '')}
-        {...register('signature', {required: true, validate: validateSignature})}
+        {...register('signature', { required: true, validate: validateSignature })}
         error={!!errors['signature']}
+      />
+      <ReCAPTCHA
+        ref={recaptchaRef}
+        size="invisible"
+        sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+        onChange={handleRecaptchaChange}
       />
       <Box display="flex" justifyContent="center" m={1}>
         <Button type="submit" variant="contained" color="primary" size="large" disabled={submitting}>Continue</Button>
