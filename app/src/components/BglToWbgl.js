@@ -1,7 +1,8 @@
-import {useState, Fragment} from 'react'
+import {useState, Fragment, createRef, useEffect} from 'react'
 import {useForm} from 'react-hook-form'
 import {Box, Button, FormControlLabel, FormLabel, Radio, RadioGroup, TextField, Typography} from '@material-ui/core'
 import {post, url, chainLabel} from '../utils'
+import ReCAPTCHA from 'react-google-recaptcha'
 
 function BglToWbgl() {
   const {register, handleSubmit, setError, setFocus, formState: {errors}} = useForm()
@@ -10,23 +11,44 @@ function BglToWbgl() {
   const [balance, setBalance] = useState(0)
   const [feePercentage, setFeePercentage] = useState(0)
   const [chain, setChain] = useState('eth')
+  const [captchaToken, setCaptchaToken] = useState(null)
+
   const onChangeChain = event => setChain(event.target.value)
+  const recaptchaRef = createRef()
+
+  useEffect(() => {
+    recaptchaRef.current?.execute()
+    return () => {
+      recaptchaRef.current?.reset()
+    }
+  }, [captchaToken, recaptchaRef])
+
+  const handleRecaptchaChange = (token) => {
+    if (!token) return;
+    else setCaptchaToken(token);
+  }
 
   const onSubmit = data => {
     if (!data.chain) data.chain = 'eth'
 
     setSubmitting(true)
+    const _data = { ...data, captchaToken }
 
-    post(url('/submit/bgl'), data).then(response => {
+    post(url('/submit/bgl'), _data).then(response => {
       setSendAddress(response.bglAddress)
       setBalance(Math.floor(response.balance))
       setFeePercentage(response.feePercentage)
+      recaptchaRef.current?.reset()
     }).catch(result => {
       if (result.hasOwnProperty('field')) {
         setError(result.field, {type: 'manual', message: result.message})
         setFocus(result.field)
+        recaptchaRef.current?.reset()
       }
-    }).finally(() => setSubmitting(false))
+    }).finally(() => {
+      setSubmitting(false)
+      recaptchaRef.current?.reset()
+    })
   }
 
   return !sendAddress ? (
@@ -45,6 +67,12 @@ function BglToWbgl() {
         helperText={errors.address ? `Please enter a valid ${chainLabel(chain)} address.` : `Enter the ${chainLabel(chain)} address to receive WBGL tokens at.`}
         {...register('address', {required: true, pattern: /^0x[a-fA-F0-9]{40}$/i})}
         error={!!errors.address}
+      />
+      <ReCAPTCHA
+        ref={recaptchaRef}
+        size="invisible"
+        sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+        onChange={handleRecaptchaChange}
       />
       <Box display="flex" justifyContent="center" m={1}>
         <Button type="submit" variant="contained" color="primary" size="large" disabled={submitting}>Continue</Button>
