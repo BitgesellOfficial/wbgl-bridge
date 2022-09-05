@@ -36,6 +36,11 @@ Backend service is configured using environment variables that need to be set be
 - `DB_CONNECTION`: MongoDB connection string in the following format: `mongodb://username:password@hostname:27017`.
 - `DB_DATABASE`: Name of the MongoDB database. Defaults to `wbgl_bridge`.
 
+To set up the above environment secrets with defaults:
+```shell
+cp app/.env.sample .env
+cp servie/.env.sample .env
+```
 The command for running the service is:
 ```shell
 node src/server.js
