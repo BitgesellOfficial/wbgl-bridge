@@ -1,4 +1,18 @@
 import mongoose from "mongoose";
+import { Chain } from "../types";
+
+export interface ITransaction {
+  type: string,
+  chain: Chain,
+  id: string,
+  transfer: string,
+  address: string,
+  amount: number,
+  blockHash: string,
+  time: Date
+}
+
+
 
 const schema = new mongoose.Schema(
   {
@@ -18,4 +32,4 @@ const schema = new mongoose.Schema(
   { timestamps: true },
 );
 
-export default mongoose.model("Transaction", schema);
+export default mongoose.model<ITransaction>("Transaction", schema);
