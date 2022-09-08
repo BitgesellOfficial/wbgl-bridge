@@ -38,7 +38,7 @@ Backend service is configured using environment variables that need to be set be
 
 The command for running the service is:
 ```shell
-node src/server.js
+node dist/server.js
 ```
 
 ### Frontend Application
