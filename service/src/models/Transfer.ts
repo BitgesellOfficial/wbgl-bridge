@@ -1,4 +1,20 @@
 import mongoose from "mongoose";
+import { Chain } from "../types";
+
+enum ChainTypes {
+  bgl = "bgl",
+  wbgl = "wbgl",
+}
+
+type ChainType = string | ChainTypes
+
+interface ITransfer {
+  id: string,
+  type: ChainType,
+  chain: Chain,
+  from: string,
+  to: string
+}
 
 const schema = new mongoose.Schema(
   {
@@ -11,4 +27,4 @@ const schema = new mongoose.Schema(
   { timestamps: true },
 );
 
-export default mongoose.model("Transfer", schema);
+export default mongoose.model<ITransfer>("Transfer", schema);
