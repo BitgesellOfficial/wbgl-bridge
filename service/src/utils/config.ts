@@ -5,10 +5,19 @@ export const env = process.env.NODE_ENV || "development";
 
 export const port = process.env.PORT || "8080";
 
-const rpcConfig = {
+type RPCConfig = {
+  host: string,
+  port: string,
+  username?: string,
+  password?: string,
+  wallet?: string
+}
+
+const rpcConfig: RPCConfig = {
   host: process.env.RPC_HOST || "localhost",
   port: process.env.RPC_PORT || "8332",
 };
+
 if (process.env.hasOwnProperty("RPC_USER") && process.env.RPC_USER) {
   rpcConfig.username = process.env.RPC_USER;
 }
@@ -18,19 +27,20 @@ if (process.env.hasOwnProperty("RPC_PASSWORD") && process.env.RPC_PASSWORD) {
 if (process.env.hasOwnProperty("RPC_WALLET") && process.env.RPC_WALLET) {
   rpcConfig.wallet = process.env.RPC_WALLET;
 }
+
 export const rpc = rpcConfig;
 
 export const eth = {
   endpoint: process.env.ETH_ENDPOINT,
   account: process.env.ETH_ACCOUNT,
-  key: Buffer.from(process.env.ETH_PRIVKEY, "hex"),
+  key: Buffer.from(process.env.ETH_PRIVKEY as string, "hex"),
   contract: process.env.ETH_CONTRACT_ADDRESS,
 };
 
 export const bsc = {
   endpoint: process.env.BSC_ENDPOINT,
   account: process.env.BSC_ACCOUNT,
-  key: Buffer.from(process.env.BSC_PRIVKEY, "hex"),
+  key: Buffer.from(process.env.BSC_PRIVKEY as string, "hex"),
   contract: process.env.BSC_CONTRACT_ADDRESS,
 };
 
@@ -40,14 +50,14 @@ export const mongo = {
 };
 
 export const confirmations = {
-  bgl: parseInt(process.env.BGL_MIN_CONFIRMATIONS) || 3,
-  eth: parseInt(process.env.ETH_MIN_CONFIRMATIONS) || 3,
-  bsc: parseInt(process.env.BSC_MIN_CONFIRMATIONS) || 3,
+  bgl: parseInt(process.env.BGL_MIN_CONFIRMATIONS as string) || 3,
+  eth: parseInt(process.env.ETH_MIN_CONFIRMATIONS as string) || 3,
+  bsc: parseInt(process.env.BSC_MIN_CONFIRMATIONS as string) || 3,
 };
 
-export const feePercentage = process.env.FEE_PERCENTAGE || 1;
+export const feePercentage = parseInt(process.env.FEE_PERCENTAGE as string) || 1;
 
 export const nonces = {
-  bsc: parseInt(process.env.BSC_NONCE) || 0,
-  eth: parseInt(process.env.ETH__NONCE) || 0,
+  bsc: parseInt(process.env.BSC_NONCE as string) || 0,
+  eth: parseInt(process.env.ETH__NONCE as string) || 0,
 };
