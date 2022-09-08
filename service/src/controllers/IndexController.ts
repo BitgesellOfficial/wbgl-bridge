@@ -1,13 +1,14 @@
-import { Db, RPC, Eth, Bsc } from "../modules/index.js";
+import {Request, Response} from "express"
+import { Db, RPC, Eth, Bsc } from "../modules/index";
 
-export const healthCheck = async (_req, res) => {
+export const healthCheck = async (_req: Request, res: Response) => {
   try {
     await RPC.getBalance();
     if (!Db.isConnected()) {
-      res.json(500, {
+      res.status(500).json({
         status: "error",
         message: "Database connection not available",
-      });
+      })
     }
     res.json({
       status: "ok",
@@ -18,11 +19,11 @@ export const healthCheck = async (_req, res) => {
   }
 };
 
-export const state = async (_req, res) => {
+export const state = async (_req: Request, res: Response) => {
   try {
     const blockchainInfo = await RPC.getBlockchainInfo();
     if (!Db.isConnected()) {
-      res.json(500, {
+      res.status(500).json({
         status: "error",
         message: "Database connection not available",
       });

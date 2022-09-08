@@ -1,4 +1,23 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
+import {Chain} from "../types"
+
+interface IConversion  {
+  type: string,
+  chain: Chain,
+  transfer: string,
+  transaction: string,
+  address: string,
+  amount: string,
+  sendAmount: number,
+  txid: string,
+  nonce: number,
+  receipt: Object,
+  returnTxid: string,
+  status: string,
+  txChecks: number,
+}
+
+export type ConversionModelType = IConversion & Document<any, any, IConversion>
 
 const schema = new mongoose.Schema(
   {
@@ -27,4 +46,4 @@ const schema = new mongoose.Schema(
   { timestamps: true },
 );
 
-export default mongoose.model("Conversion", schema);
+export default mongoose.model<IConversion>("Conversion", schema);

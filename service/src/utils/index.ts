@@ -1,21 +1,25 @@
 import Web3 from "web3";
-import { RPC } from "../modules/index.js";
+import BN from 'bn.js'
 
-export const isValidEthAddress = (address) =>
+import { RPC } from "../modules/index";
+
+type Address = string
+
+export const isValidEthAddress = (address: Address) =>
   /^0x[a-fA-F0-9]{40}$/i.test(address);
 
-export const isValidBglAddress = async (address) =>
+export const isValidBglAddress = async (address: Address) =>
   RPC.validateAddress(address);
 
-export const sha3 = (value) => Web3.utils.sha3(value).substring(2);
+export const sha3 = (value: string | BN): string =>  Web3.utils.sha3(value).substring(2);
 
 const bn = Web3.utils.toBN;
 
-export function isString(s) {
+export function isString(s: any) {
   return typeof s === "string" || s instanceof String;
 }
 
-export function toBaseUnit(value, decimals) {
+export function toBaseUnit(value: string, decimals: number): BN {
   if (!isString(value)) {
     throw new Error("Pass strings to prevent floating point precision issues.");
   }
@@ -41,8 +45,8 @@ export function toBaseUnit(value, decimals) {
     throw new Error("Too many decimal points");
   }
 
-  let whole = comps[0],
-    fraction = comps[1];
+  let whole: string | BN = comps[0],
+    fraction: string | BN = comps[1];
 
   if (!whole) {
     whole = "0";

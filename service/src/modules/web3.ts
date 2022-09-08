@@ -1,25 +1,36 @@
 import Web3 from "web3";
+import {Contract} from "web3-eth-contract"
 //import {Transaction} from 'ethereumjs-tx'
+import fs from "fs";
+
+import { toBaseUnit } from "../utils/index.js";
 import pkg from "ethereumjs-tx";
 const { Transaction } = pkg;
-import fs from "fs";
-import { Data } from "../modules/index.js";
-import { toBaseUnit } from "../utils/index.js";
 
 const bn = Web3.utils.toBN;
-const createProvider = (endpoint) => new Web3.providers.HttpProvider(endpoint);
+const createProvider = (endpoint: string) => new Web3.providers.HttpProvider(endpoint);
 
 class Web3Base {
   decimals = 18;
-
+  private contractAddress: string;
+  private custodialAccountKey: Buffer;
+  private nonceDataName: string;
+  private chain!: string
+  
+  public confirmations: number;
+  public web3: Web3;
+  public WBGL: Contract;
+  public custodialAccountAddress: string
+  public id: string;
+  
   constructor(
-    endpoint,
-    id,
-    contractAddress,
-    custodialAccountAddress,
-    custodialAccountKey,
-    nonceDataName,
-    confirmations,
+    endpoint: string,
+    id: string,
+    contractAddress: string,
+    custodialAccountAddress: string,
+    custodialAccountKey: Buffer,
+    nonceDataName: string,
+    confirmations: number,
   ) {
     this.id = id;
     this.contractAddress = contractAddress;
@@ -35,7 +46,7 @@ class Web3Base {
     );
     this.WBGL.methods["decimals"]()
       .call()
-      .then((decimals) => (this.decimals = decimals));
+      .then((decimals: number) => (this.decimals = decimals));
 
     this.init()
       .then(() => {})
@@ -56,7 +67,7 @@ class Web3Base {
     return this.web3.utils.fromWei(gasPrice, "Gwei");
   }
 
-  async getEstimateGas(amount) {
+  async getEstimateGas(amount: string) {
     return await this.WBGL.methods["transfer"](
       this.custodialAccountAddress,
       toBaseUnit(amount, this.decimals),
@@ -69,13 +80,13 @@ class Web3Base {
     );
   }
 
-  async getWBGLBalance1(address) {
+  async getWBGLBalance1(address: string) {
     return this.convertWGBLBalance(
       await this.WBGL.methods["balanceOf"](address).call(),
     );
   }
 
-  convertWGBLBalance(number, resultDecimals = this.decimals) {
+  convertWGBLBalance(number: number, resultDecimals = this.decimals) {
     const balance = bn(number);
     const divisor = bn(10).pow(bn(this.decimals));
     const beforeDec = balance.div(divisor).toString();
@@ -94,11 +105,11 @@ class Web3Base {
     );
   }
 
-  async getTransactionReceipt(txid) {
+  async getTransactionReceipt(txid: string) {
     return await this.web3.eth.getTransactionReceipt(txid);
   }
 
-  sendWBGL(address, amount, nonce) {
+  sendWBGL(address: string, amount: string, nonce: number) {
     return new Promise(async (resolve, reject) => {
       const data = this.WBGL.methods["transfer"](
         address,

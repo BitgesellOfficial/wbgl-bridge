@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
-import { mongo } from "../utils/config.js";
+import { mongo } from "../utils/config";
 
 let dbConnected = false;
 
 export const init = async () => {
   try {
-    await mongoose.connect(mongo.url, {
+    await mongoose.connect(mongo.url as string, {
       dbName: mongo.database,
       useNewUrlParser: true,
       useUnifiedTopology: true,

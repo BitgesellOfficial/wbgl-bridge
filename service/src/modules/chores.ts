@@ -1,23 +1,26 @@
-import { confirmations, feePercentage, bsc, nonces } from "../utils/config.js";
-import { Data, RPC, Eth, Bsc } from "./index.js";
-import Transaction from "../models/Transaction.js";
-import Transfer from "../models/Transfer.js";
-import Conversion from "../models/Conversion.js";
+import { confirmations, feePercentage, bsc, nonces } from "../utils/config";
+import { Data, RPC, Eth, Bsc } from "./index";
+import Transaction from "../models/Transaction";
+import Transfer from "../models/Transfer";
+import Conversion, { ConversionModelType } from "../models/Conversion";
+import { Tx } from "../models/Transaction";
 
 let ethNonce = 0;
 let bscNonce = 0;
 
-function setupNonce(){
+async function setupNonce(){
   if ((ethNonce == 0) && (nonces.eth == 0)) {
-    ethNonce = Eth.getTransactionCount();
+    const Nonce = await Eth.getTransactionCount();
+    ethNonce = Nonce;
   } else if ((nonces.eth > 0) && (nonces.eth > ethNonce)) {
     ethNonce = nonces.eth;
   }
   if ((bscNonce == 0) && (nonces.bsc == 0)) {
-    bscNonce = Bsc.getTransactionCount();
+    bscNonce = await Bsc.getTransactionCount();
   } else if ((nonces.bsc > 0) && (nonces.bsc > bscNonce)) {
     bscNonce = nonces.bsc;
   }
+  return { ethNonce, bscNonce }
 }
 
 const expireDate = () => {
@@ -26,10 +29,10 @@ const expireDate = () => {
   return expireDate.toISOString();
 };
 
-const deductFee = (amount) =>
+const deductFee = (amount: number) =>
   parseFloat((((100 - feePercentage) * amount) / 100).toFixed(3));
 
-async function returnBGL(conversion, address) {
+async function returnBGL(conversion: ConversionModelType, address: string) {
   try {
     conversion.status = "returned";
     await conversion.save();
@@ -45,13 +48,16 @@ async function returnBGL(conversion, address) {
   }
 }
 
-async function returnWBGL(Chain, conversion, address) {
+
+async function returnWBGL(Chain: typeof Eth | typeof Bsc, conversion: ConversionModelType, address: string) {
   try {
     conversion.status = "returned";
     await conversion.save();
+    // @ts-ignore
     conversion.returnTxid = await Chain.sendWBGL(
       address,
       conversion.amount.toString(),
+      0
     );
     await conversion.save();
   } catch (e) {
@@ -71,20 +77,19 @@ async function checkBglTransactions() {
       blockHash || undefined,
       confirmations.bgl,
     );
-    setupNonce();
     result.transactions
       .filter(
-        (tx) =>
+        (tx: Tx) =>
           tx.confirmations >= confirmations.bgl && tx.category === "receive",
       )
-      .forEach((tx) => {
+      .forEach((tx: Tx) => {
         Transfer.findOne({
           type: "bgl",
           from: tx.address,
           updatedAt: { $gte: expireDate() },
         })
           .exec()
-          .then(async (transfer) => {
+          .then(async (transfer: any) => {
             if (
               transfer &&
               !(await Transaction.findOne({ id: tx["txid"] }).exec())
@@ -99,7 +104,7 @@ async function checkBglTransactions() {
                 transfer: transfer._id,
                 address: fromAddress,
                 amount: tx["amount"],
-                blockHash: tx["blockhash"],
+                blockHash: tx["blockHash"],
                 time: new Date(tx["time"] * 1000),
               });
               const amount = deductFee(tx["amount"]);
@@ -113,6 +118,7 @@ async function checkBglTransactions() {
                 sendAmount: amount,
               });
 
+              // @ts-ignore
               if (amount > (await Chain.getWBGLBalance())) {
                 console.log(
                   `Insufficient WBGL balance, returning ${tx["amount"]} BGL to ${fromAddress}`,
@@ -125,6 +131,7 @@ async function checkBglTransactions() {
                 const AssignedNonce = transfer.chain === "bsc" ? Bsc : Eth;
                 if (transfer.chain === "bsc") {
                   bscNonce += 1;
+                  // @ts-ignore
                   conversion.txid = await Chain.sendWBGL(
                     transfer.to,
                     amount.toString(),
@@ -132,6 +139,7 @@ async function checkBglTransactions() {
                   );
                 } else {
                   ethNonce += 1;
+                  // @ts-ignore
                   conversion.txid = await Chain.sendWBGL(
                     transfer.to,
                     amount.toString(),
@@ -183,21 +191,23 @@ export async function checkWbglTransfers(Chain = Eth, prefix = "Eth") {
       console.log("fromQuery:", fromQuery);
       Transfer.findOne({
         type: "wbgl",
+        // @ts-ignore
         chain: Chain.id,
         from: fromQuery,
         updatedAt: { $gte: expireDate() },
       })
         .exec()
-        .then(async (transfer) => {
+        .then(async (transfer: any) => {
           if (
             transfer &&
             !(await Transaction.findOne({
+              // @ts-ignore
               chain: Chain.id,
               id: event.transactionHash,
             }).exec())
           ) {
             const amount = Chain.convertWGBLBalance(event.returnValues.value);
-            const sendAmount = deductFee(amount);
+            const sendAmount = deductFee(parseFloat(amount));
             const transaction = await Transaction.create({
               type: "wbgl",
               chain: Chain.id,
@@ -228,7 +238,7 @@ export async function checkWbglTransfers(Chain = Eth, prefix = "Eth") {
             }
 
             try {
-              conversion.txid = await RPC.send(transfer.to, sendAmount);
+              conversion.txid = await RPC.send(transfer.to, (sendAmount).toString());
               conversion.status = "sent";
               await conversion.save();
             } catch (e) {
@@ -253,13 +263,17 @@ export async function checkWbglTransfers(Chain = Eth, prefix = "Eth") {
   setTimeout(() => checkWbglTransfers(Chain, prefix), 60000);
 }
 
-async function checkPendingConversions(Chain) {
+// @ts-ignore
+async function checkPendingConversions(Chain: typeof Eth | typeof Bsc) {
+ 
+  // @ts-ignore
   const conversions = await Conversion.find({
     chain: Chain.id,
     type: "wbgl",
     status: "pending",
     txid: { $exists: true },
   }).exec();
+
   let blockNumber;
   console.log("checkPendingConversions:", conversions);
   try {
@@ -288,6 +302,7 @@ async function checkPendingConversions(Chain) {
 
 export const init = async () => {
   await checkWbglTransfers(Eth, "Eth");
+  // @ts-ignore: Inheritance vs subtyping
   await checkWbglTransfers(Bsc, "Bsc");
 
   await checkBglTransactions();

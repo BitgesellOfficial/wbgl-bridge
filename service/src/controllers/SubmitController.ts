@@ -1,9 +1,10 @@
-import Transfer from "../models/Transfer.js";
-import { RPC, Eth, Bsc } from "../modules/index.js";
-import { bsc, eth, feePercentage } from "../utils/config.js";
-import { isValidBglAddress, isValidEthAddress, sha3 } from "../utils/index.js";
+import {Request, Response} from "express";
+import Transfer from "../models/Transfer";
+import { RPC, Eth, Bsc } from "../modules";
+import { bsc, eth, feePercentage } from "../utils/config";
+import { isValidBglAddress, isValidEthAddress, sha3 } from "../utils/index";
 
-export const bglToWbgl = async (req, res) => {
+export const bglToWbgl = async (req: Request, res: Response) => {
   const data = req.body;
   if (!data.hasOwnProperty("address") || !isValidEthAddress(data.address)) {
     res.status(400).json({
@@ -52,7 +53,7 @@ export const bglToWbgl = async (req, res) => {
   }
 };
 
-export const wbglToBgl = async (req, res) => {
+export const wbglToBgl = async (req: Request, res: Response) => {
   const data = req.body;
   if (
     !data.hasOwnProperty("ethAddress") ||
