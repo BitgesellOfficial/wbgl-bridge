@@ -15,9 +15,9 @@ class Web3Base {
   private contractAddress: string;
   private custodialAccountKey: Buffer;
   private nonceDataName: string;
-  private confirmations: number;
   private chain!: string
   
+  public confirmations: number;
   public web3: Web3;
   public WBGL: Contract;
   public custodialAccountAddress: string
