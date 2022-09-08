@@ -1,7 +1,7 @@
 import http from "http";
-import app from "./app.js";
-import { port } from "./utils/config.js";
-import { Db, Chores } from "./modules/index.js";
+import app from "./app";
+import { port } from "./utils/config";
+import { Db, Chores } from "./modules/index";
 
 const server = http.createServer(app);
 server.listen(parseInt(port), () => {
@@ -14,5 +14,10 @@ process.on("uncaughtException", async (error) => {
   process.exit(1);
 });
 
-await Db.init();
-await Chores.init();
+const init = async() => {
+  await Db.init();
+  await Chores.init();
+}
+
+init()
+  .catch(err => {process.exit(1)})

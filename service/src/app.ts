@@ -1,18 +1,18 @@
-import express from "express";
+import express, {Request, Response} from "express";
 import cors from "cors";
-import { port } from "./utils/config.js";
+import { port } from "./utils/config";
 import {
   BalanceController,
   IndexController,
   SubmitController,
-} from "./controllers/index.js";
+} from "./controllers";
 
 const app = express();
 app.set("port", port);
 app.use(cors());
 app.use(express.json());
 
-app.use(function(req, res, next) {
+app.use(function(req: Request, res: Response, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
