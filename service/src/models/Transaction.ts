@@ -9,10 +9,14 @@ export interface ITransaction {
   address: string,
   amount: number,
   blockHash: string,
-  time: Date
+  time: number
 }
 
-
+export interface Tx extends ITransaction {
+  confirmations: number
+  txid: string,
+  category: string
+}
 
 const schema = new mongoose.Schema(
   {
