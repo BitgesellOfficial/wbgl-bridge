@@ -1,9 +1,9 @@
 import Client from "bitcoin-core";
 import { rpc, confirmations } from "../utils/config.js";
 
-let client;
 
 export const getClient = () => {
+  let client;
   if (!client) {
     client = new Client(rpc);
   }
@@ -18,17 +18,17 @@ export const getBlockCount = async () =>
 
 export const getBalance = async () => await getClient().command("getbalance");
 
-export const validateAddress = async (address) =>
+export const validateAddress = async (address: string): Promise<boolean> =>
   (await getClient().command("validateaddress", address)).isvalid;
 
 export const createAddress = async () =>
   await getClient().command("getnewaddress");
 
 export const tips = async () => await getClient().getChainTips();
-export const generate = async (tip) => await getClient().generate(tip);
+export const generate = async (tip: string) => await getClient().generate(tip);
 
 export const listSinceBlock = async (
-  blockHash,
+  blockHash: string,
   confirmation = confirmations.bgl,
 ) => {
   return await getClient().command(
@@ -38,12 +38,12 @@ export const listSinceBlock = async (
   );
 };
 
-export const getTransactionFromAddress = async (txid) => {
+export const getTransactionFromAddress = async (txid: string) => {
   const rawTx = await getClient().command("getrawtransaction", txid, true);
   const vin = rawTx["vin"][0];
   const txIn = await getClient().command("getrawtransaction", vin.txid, true);
   return txIn["vout"][vin["vout"]]["scriptPubKey"]["address"];
 };
 
-export const send = async (address, amount) =>
+export const send = async (address: string, amount: string) =>
   await getClient().command("sendtoaddress", address, amount);
