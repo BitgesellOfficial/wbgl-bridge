@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
 import {Chain} from "../types"
 
 interface IConversion  {
@@ -7,7 +7,7 @@ interface IConversion  {
   transfer: string,
   transaction: string,
   address: string,
-  amount: number,
+  amount: string,
   sendAmount: number,
   txid: string,
   nonce: number,
@@ -16,6 +16,8 @@ interface IConversion  {
   status: string,
   txChecks: number,
 }
+
+export type ConversionModelType = IConversion & Document<any, any, IConversion>
 
 const schema = new mongoose.Schema(
   {
