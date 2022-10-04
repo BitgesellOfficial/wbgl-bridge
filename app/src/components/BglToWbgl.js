@@ -1,19 +1,28 @@
+import {useMetaMask} from 'metamask-react'
 import {useState, Fragment} from 'react'
 import {useForm} from 'react-hook-form'
-import {Box, Button, FormControlLabel, FormLabel, Radio, RadioGroup, TextField, Typography} from '@material-ui/core'
-import {post, url, chainLabel} from '../utils'
+import {
+  Box,
+  Button,
+  List, ListItemText,
+  Typography,
+} from '@material-ui/core'
+import {post, url, chainLabel, isChainBsc} from '../utils'
+import CheckWalletConnection from './CheckWalletConnection'
 
 function BglToWbgl() {
-  const {register, handleSubmit, setError, setFocus, formState: {errors}} = useForm()
+  const {handleSubmit} = useForm()
   const [submitting, setSubmitting] = useState(false)
   const [sendAddress, setSendAddress] = useState(false)
   const [balance, setBalance] = useState(0)
   const [feePercentage, setFeePercentage] = useState(0)
-  const [chain, setChain] = useState('eth')
-  const onChangeChain = event => setChain(event.target.value)
+  const {chainId, account} = useMetaMask()
 
-  const onSubmit = data => {
-    if (!data.chain) data.chain = 'eth'
+  const onSubmit = () => {
+    const data = {
+      chain: isChainBsc(chainId) ? 'bsc' : 'eth',
+      address: account,
+    }
 
     setSubmitting(true)
 
@@ -22,34 +31,22 @@ function BglToWbgl() {
       setBalance(Math.floor(response.balance))
       setFeePercentage(response.feePercentage)
     }).catch(result => {
-      if (result.hasOwnProperty('field')) {
-        setError(result.field, {type: 'manual', message: result.message})
-        setFocus(result.field)
-      }
+      console.error('Error submitting form:', result)
     }).finally(() => setSubmitting(false))
   }
 
   return !sendAddress ? (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
-      <FormLabel>Chain:</FormLabel>
-      <RadioGroup defaultValue="eth" name="chain" {...register('chain')} onChange={onChangeChain}>
-        <FormControlLabel value="eth" control={<Radio />} label={'Ethereum'} />
-        <FormControlLabel value="bsc" control={<Radio />} label={'Binance Smart Chain'} />
-      </RadioGroup>
-      <TextField
-        variant="filled"
-        margin="normal"
-        label={`${chainLabel(chain)} Address`}
-        fullWidth
-        required
-        helperText={errors.address ? `Please enter a valid ${chainLabel(chain)} address.` : `Enter the ${chainLabel(chain)} address to receive WBGL tokens at.`}
-        {...register('address', {required: true, pattern: /^0x[a-fA-F0-9]{40}$/i})}
-        error={!!errors.address}
-      />
-      <Box display="flex" justifyContent="center" m={1}>
-        <Button type="submit" variant="contained" color="primary" size="large" disabled={submitting}>Continue</Button>
-      </Box>
-    </form>
+    <CheckWalletConnection>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
+        <List>
+          <ListItemText primary="Chain:" secondary={chainLabel(chainId)}/>
+          <ListItemText primary={`Receiving Address:`} secondary={account}/>
+        </List>
+        <Box display="flex" justifyContent="center" m={1}>
+          <Button type="submit" variant="contained" color="primary" size="large" disabled={submitting}>Continue</Button>
+        </Box>
+      </form>
+    </CheckWalletConnection>
   ) : (
     <Fragment>
       <Typography variant="body1" gutterBottom>Send BGL to: <code>{sendAddress}</code></Typography>

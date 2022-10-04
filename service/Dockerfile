@@ -9,4 +9,6 @@ WORKDIR /service
 
 COPY . .
 
+RUN yarn install
+
 CMD ["sh", "-c", "yarn ; pm2-runtime src/server.js"]

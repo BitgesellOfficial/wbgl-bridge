@@ -1,4 +1,5 @@
 import { Db, RPC, Eth, Bsc } from "../modules/index.js";
+import { eth, bsc } from "../utils/config.js";
 
 export const healthCheck = async (_req, res) => {
   try {
@@ -51,4 +52,11 @@ export const state = async (_req, res) => {
     console.log(e);
     res.status(500).json({ status: "error", message: "RPC not available" });
   }
+};
+
+export const contracts = async (_req, res) => {
+  res.json({
+    eth: eth.contract,
+    bsc: bsc.contract,
+  });
 };

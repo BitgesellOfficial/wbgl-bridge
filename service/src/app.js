@@ -21,6 +21,7 @@ app.use(function(req, res, next) {
 
 app.get("/", IndexController.healthCheck);
 app.get("/state", IndexController.state);
+app.get("/contracts", IndexController.contracts);
 
 app.get("/balance/bgl", BalanceController.bgl);
 app.get("/balance/eth", BalanceController.eth);
