@@ -79,12 +79,7 @@ export const wbglToBgl = async (req, res) => {
     }
     if (
       !data.hasOwnProperty("signature") ||
-      typeof data.signature !== "object" ||
-      !data.signature.hasOwnProperty("address") ||
-      !data.signature.hasOwnProperty("msg") ||
-      !data.signature.hasOwnProperty("sig") ||
-      data.signature.address !== data.ethAddress ||
-      data.signature.msg !== data.bglAddress
+      typeof data.signature !== "string"
     ) {
       res.status(400).json({
         status: "error",
@@ -98,8 +93,8 @@ export const wbglToBgl = async (req, res) => {
     console.log("data.chain :", data.chain);
     const Chain = chain === "eth" ? Eth : Bsc;
     if (
-      data.ethAddress !==
-      Chain.web3.eth.accounts.recover(data.bglAddress, data.signature.sig)
+      data.ethAddress.toLowerCase() !==
+      Chain.web3.eth.accounts.recover(data.bglAddress, data.signature).toLowerCase()
     ) {
       res.status(400).json({
         status: "error",
