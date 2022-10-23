@@ -21,6 +21,9 @@ function ConnectWallet() {
 
     case 'connected':
       return (<Chip label={chainLabel(chainId)} color={isChainValid(chainId) ? 'primary' : 'secondary'}/>)
+    default:
+      return (<Button variant="contained" color="secondary" onClick={connect}>Connect</Button>)
+
   }
 }
 
