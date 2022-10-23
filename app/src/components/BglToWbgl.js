@@ -37,9 +37,9 @@ function BglToWbgl() {
 
   return !sendAddress ? (
     <CheckWalletConnection>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off" data-testid='send-form'>
         <List>
-          <ListItemText primary="Chain:" secondary={chainLabel(chainId)}/>
+          <ListItemText  primary="Chain:" secondary={chainLabel(chainId)}/>
           <ListItemText primary={`Receiving Address:`} secondary={account}/>
         </List>
         <Box display="flex" justifyContent="center" m={1}>
@@ -49,12 +49,12 @@ function BglToWbgl() {
     </CheckWalletConnection>
   ) : (
     <Fragment>
-      <Typography variant="body1" gutterBottom>Send BGL to: <code>{sendAddress}</code></Typography>
+      <Typography variant="body1" gutterBottom>Send BGL to: <code data-testid='send-address'>{sendAddress}</code></Typography>
       <Typography variant="body2" gutterBottom>
-        The currently available WBGL balance is <b>{balance}</b>. If you send more BGL than is available to complete the exchange, your BGL will be returned to your address.
+        The currently available WBGL balance is <b data-testid="balance">{balance}</b>. If you send more BGL than is available to complete the exchange, your BGL will be returned to your address.
       </Typography>
       <Typography variant="body2" gutterBottom>
-        Please note, that a fee of <b>{feePercentage}%</b> will be automatically deducted from the transfer amount. This exchange pair is active for <b>7 days</b>.
+        Please note, that a fee of <b data-testid='fee-percentage'>{feePercentage}%</b> will be automatically deducted from the transfer amount. This exchange pair is active for <b>7 days</b>.
       </Typography>
     </Fragment>
   )
