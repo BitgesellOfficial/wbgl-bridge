@@ -5,9 +5,13 @@ import {blueGrey} from '@material-ui/core/colors'
 import logo from '../assets/images/logo.png'
 import {appTitle} from '../utils/config'
 import ConnectWallet from './ConnectWallet'
+import SwitchToBSCMainet from './SwitchToBSCMainet'
+import {useMetaMask} from 'metamask-react'
+
 
 function Header() {
   const classes = useStyles()
+  const {status, chainId, connect} = useMetaMask()
 
   return (
     <Box p={2} color="white" bgcolor={bgColor} className={classes.container}>
@@ -19,6 +23,7 @@ function Header() {
             </Link>
           </Typography>
           <ConnectWallet/>
+          {chainId != '0x38'? (<SwitchToBSCMainet/>): null}
         </Box>
       </Container>
     </Box>
