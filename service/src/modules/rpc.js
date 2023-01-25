@@ -1,5 +1,6 @@
 import Client from "bitcoin-core";
 import { rpc, confirmations } from "../utils/config.js";
+import { logger } from "../utils/logger.js";
 
 let client;
 
@@ -31,19 +32,35 @@ export const listSinceBlock = async (
   blockHash,
   confirmation = confirmations.bgl,
 ) => {
+ try {
   return await getClient().command(
     "listsinceblock",
     blockHash ? blockHash : undefined,
     confirmation,
   );
+ } catch(error) {
+  console.error('Failed to list since block', e)
+  logger.error('Failed to list since block', e)
+ }
 };
 
 export const getTransactionFromAddress = async (txid) => {
+ try {
   const rawTx = await getClient().command("getrawtransaction", txid, true);
   const vin = rawTx["vin"][0];
   const txIn = await getClient().command("getrawtransaction", vin.txid, true);
   return txIn["vout"][vin["vout"]]["scriptPubKey"]["address"];
-};
+ } catch (e) {
+  return null
+ }
+}
 
-export const send = async (address, amount) =>
-  await getClient().command("sendtoaddress", address, amount);
+export const send = async (address, amount) => {
+  try {
+    await getClient().command("sendtoaddress", address, amount);
+
+  } catch (e) {
+    console.error('Failed to send', e)
+    logger.error(`Failed to send ${amount} to ${address}`, e)
+  }
+}

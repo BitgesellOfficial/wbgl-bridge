@@ -2,6 +2,7 @@ import Transfer from "../models/Transfer.js";
 import { RPC, Eth, Bsc } from "../modules/index.js";
 import { bsc, eth, feePercentage } from "../utils/config.js";
 import { isValidBglAddress, isValidEthAddress, sha3 } from "../utils/index.js";
+import { logger } from "../utils/logger.js";
 
 export const bglToWbgl = async (req, res) => {
   const data = req.body;
@@ -22,6 +23,7 @@ export const bglToWbgl = async (req, res) => {
       chain,
       to: data.address,
     }).exec();
+
     if (!transfer) {
       const bglAddress = await RPC.createAddress();
       transfer = new Transfer({
@@ -32,6 +34,7 @@ export const bglToWbgl = async (req, res) => {
         to: data.address,
       });
     }
+
     transfer.markModified("type");
     await transfer.save();
 
@@ -42,8 +45,11 @@ export const bglToWbgl = async (req, res) => {
       balance: await Chain.getWBGLBalance(),
       feePercentage: feePercentage,
     });
+    
   } catch (e) {
     console.error(`Error: couldn't reach either RPC server or mongodb `, e);
+    logger.error(`Error: couldn't reach either RPC server or mongodb `, e);
+
     res.status(400).json({
       status: "error",
       message: "Network is likely to be down.",
@@ -130,6 +136,7 @@ export const wbglToBgl = async (req, res) => {
     });
   } catch (e) {
     console.error(`Error: network related error `, e);
+    logger.error(`Error: network related error `, e);
     res.status(400).json({
       status: "error",
       message: "Network is likely to be down.",
@@ -137,3 +144,9 @@ export const wbglToBgl = async (req, res) => {
     return;
   }
 };
+
+
+// Borrow from:
+// - coinbase
+// - Binance bridge
+// - base off issues

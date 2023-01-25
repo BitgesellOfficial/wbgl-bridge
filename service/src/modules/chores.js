@@ -3,6 +3,7 @@ import { Data, RPC, Eth, Bsc } from "./index.js";
 import Transaction from "../models/Transaction.js";
 import Transfer from "../models/Transfer.js";
 import Conversion from "../models/Conversion.js";
+import {logger} from "../utils/logger.js"
 
 let ethNonce = 0;
 let bscNonce = 0;
@@ -36,6 +37,11 @@ async function returnBGL(conversion, address) {
     conversion.returnTxid = await RPC.send(address, conversion.amount);
     await conversion.save();
   } catch (e) {
+    logger.error(
+      `Error returning BGL to ${address}, conversion ID: ${conversion._id}.`,
+      e,
+    );
+
     console.error(
       `Error returning BGL to ${address}, conversion ID: ${conversion._id}.`,
       e,
@@ -56,6 +62,10 @@ async function returnWBGL(Chain, conversion, address) {
     await conversion.save();
   } catch (e) {
     console.error(
+      `Error returning WBGL (${Chain.id}) to ${address}, conversion ID: ${conversion._id}.`,
+      e,
+    );
+    logger.error(
       `Error returning WBGL (${Chain.id}) to ${address}, conversion ID: ${conversion._id}.`,
       e,
     );
@@ -156,6 +166,8 @@ async function checkBglTransactions() {
     await Data.set("lastBglBlockHash", result["lastblock"]);
   } catch (e) {
     console.error("Error: checkBglTransactions function failed. Check network");
+    logger.error("Error: checkBglTransactions function failed. Check network");
+
   }
 
   setTimeout(checkBglTransactions, 60000);
@@ -236,6 +248,11 @@ export async function checkWbglTransfers(Chain = Eth, prefix = "Eth") {
                 `Error sending ${sendAmount} BGL to ${transfer.to}`,
                 e,
               );
+
+              logger.error(
+                `Error sending ${sendAmount} BGL to ${transfer.to}`,
+                e,
+              );
               conversion.status = "error";
               await conversion.save();
 
@@ -248,6 +265,7 @@ export async function checkWbglTransfers(Chain = Eth, prefix = "Eth") {
     });
   } catch (e) {
     console.error("Error: checkWbglTransfers function failed. Check network");
+    logger.error("Error: checkWbglTransfers function failed. Check network");
   }
 
   setTimeout(() => checkWbglTransfers(Chain, prefix), 60000);
@@ -280,6 +298,9 @@ async function checkPendingConversions(Chain) {
     }
   } catch (e) {
     console.error(
+      "Error: checkPendingConversions function failed. Check chain network or mongodb",
+    );
+    logger.error(
       "Error: checkPendingConversions function failed. Check chain network or mongodb",
     );
   }

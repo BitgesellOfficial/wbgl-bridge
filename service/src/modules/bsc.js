@@ -4,17 +4,25 @@ import Web3Base from "./web3.js";
 
 class Bsc extends Web3Base {
   async getNetworkId() {
-    if (!this.networkId) {
-      this.networkId = await this.web3.eth.net.getId();
+    try {
+      if (!this.networkId) {
+        this.networkId = await this.web3.eth.net.getId();
+      }
+      return this.networkId;
+    } catch (error) {
+      return null;
     }
-    return this.networkId;
   }
 
   async getChainId() {
-    if (!this.chainId) {
-      this.chainId = await this.web3.eth.getChainId();
+    try {
+      if (!this.chainId) {
+        this.chainId = await this.web3.eth.getChainId();
+      }
+      return this.chainId;
+    } catch (error) {
+      return null
     }
-    return this.chainId;
   }
 
   async transactionOpts() {
