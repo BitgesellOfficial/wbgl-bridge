@@ -1,15 +1,29 @@
-FROM debian:bullseye-slim
+FROM ubuntu:20.04 as builder
 
-RUN apt-get update -y \
-    && apt-get install curl ca-certificates apt-transport-https bash perl -y \
-    && apt-get clean
+ARG VERSION=0.1.9
 
-RUN curl -L "http://security.ubuntu.com/ubuntu/pool/main/p/perl/perl-modules-5.30_5.30.0-9ubuntu0.2_all.deb" -o "/var/tmp/perl-modules.deb" \
-    && curl -L "https://github.com/BitgesellOfficial/bitgesell/releases/download/0.1.7/bitgesell_0.1.7_amd64.deb" -o "/var/tmp/bitgesell.deb" \
-    && dpkg -i "/var/tmp/perl-modules.deb" \
-    && dpkg -i "/var/tmp/bitgesell.deb" \
+RUN apt update \
+    && apt install -y --no-install-recommends \
+    libatomic1 \
+    wget \
+    ca-certificates \ 
+    apt-transport-https 
+
+RUN cd /tmp/ \
+    && wget https://github.com/BitgesellOfficial/bitgesell/releases/download/${VERSION}/bitgesell_${VERSION}_amd64.deb \
+    && wget http://ports.ubuntu.com/pool/main/p/perl/perl-modules-5.30_5.30.0-9build1_all.deb \
+    && dpkg -i perl-modules-5.30_5.30.0-9build1_all.deb \
+    && dpkg -i bitgesell_${VERSION}_amd64.deb \
     && apt-get install -y -f \
-    && rm -rf "/var/tmp/*"
+    && apt clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN cd /tmp/ \
+    && wget https://github.com/BitgesellOfficial/bitgesell/releases/download/${VERSION}/bitgesell_${VERSION}_amd64.deb \
+    && wget http://ports.ubuntu.com/pool/main/p/perl/perl-modules-5.30_5.30.0-9build1_all.deb \
+    && dpkg -i perl-modules-5.30_5.30.0-9build1_all.deb \
+    && dpkg -i bitgesell_${VERSION}_amd64.deb \
+    && apt-get install -y -f \
+    && apt clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 WORKDIR "/root/.BGL"
 
