@@ -1,20 +1,24 @@
-import {isTest, serviceUrl} from './config'
+import { isTest, serviceUrl } from './config'
 
-export const url = path => serviceUrl + path
+export const url = (path) => serviceUrl + path
 
-export const fetcher = url => fetch(url).then(res => res.json())
+export const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export const post = async (url, data) => {
-  const response = await fetch(url, {
-    method: 'POST',
-    mode: 'cors',
-    cache: 'no-cache',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  })
-  return response.json()
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+    return await response.json()
+  } catch (error) {
+    return error.message
+  }
 }
 
 export function chainLabel(chainId) {
@@ -32,10 +36,13 @@ export function chainLabel(chainId) {
 }
 
 export function isChainValid(chainId) {
-  return isTest ? [3, 97, '0x3', '0x61'].includes(chainId) : [1, 56, '0x1', '0x38'].includes(chainId)
+  return isTest
+    ? [3, 97, '0x3', '0x61'].includes(chainId)
+    : [1, 56, '0x1', '0x38'].includes(chainId)
 }
 
-export const isChainBsc = chainId => (typeof chainId == 'string' ? ['0x38', '0x61'] : [56, 97]).includes(chainId)
+export const isChainBsc = (chainId) =>
+  (typeof chainId == 'string' ? ['0x38', '0x61'] : [56, 97]).includes(chainId)
 
 let contracts
 export async function getTokenAddress(chainId) {
